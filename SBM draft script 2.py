@@ -1,10 +1,10 @@
-
 import requests # for HTTP requests
 from bs4 import BeautifulSoup # for HTML parsing
 import xlwt # for exporting to MS Excel
 
 # Configuration of request variables
 url_SBM_TargetVsAchievement = 'http://sbm.gov.in/sbmreport/Report/Physical/SBM_TargetVsAchievement.aspx'
+url_SBM_FinanceProgress = 'http://sbm.gov.in/sbmreport/Report/Financial/SBM_StateReleaseAllocationincludingUnapproved.aspx'
 
 stateKey = 'ctl00$ContentPlaceHolder1$ddlState'
 stateVal = '26'
@@ -38,7 +38,7 @@ postParams = {
 #postHeaders = {'Host':hostURL,'Origin':originURL,'Referer':'http://sbm.gov.in/sbmreport/Report/Physical/SBM_TargetVsAchievement.aspx'}
 
 # Make the request. Form must be POSTed
-r = requests.post(url_SBM_TargetVsAchievement, data=postParams)
+r = requests.post(url_SBM_FinanceProgress, data=postParams)
 
 # Check that request returns OK and then process HTML
 if r.status_code == 200:
