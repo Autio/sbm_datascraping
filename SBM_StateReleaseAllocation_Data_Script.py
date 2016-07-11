@@ -103,10 +103,14 @@ try: # Main exception handler
             stateOptionVal = s.text
             stateOptionVals.append(stateOptionVal)
 
-
-
         eventVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
         viewStateVal = componentPage.find('input',{'id':'__VIEWSTATE'})['value']
+
+        info = {'__EVENTARGUMENT' : '', '__EVENTTARGET' : 'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$lnkbtn_stName', eventValKey:eventVal,
+            viewStateKey:viewStateVal}
+
+        # create dictionary from list
+        oaramDictionary = data={key: str(value) for key, value in info.items()}
 
         # Need to call Javascript __doPostBack() on the links
         postParams = {
@@ -114,7 +118,6 @@ try: # Main exception handler
             '__EVENTTARGET' : 'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$lnkbtn_stName',
             eventValKey:eventVal,
             viewStateKey:viewStateVal,
-            'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$hfd_StateId':"26",
             'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$hfd_StateId':"26",
             'ctl00$ContentPlaceHolder1$rptr_cen$ctl02$hfd_StateId':"1",
             'ctl00$ContentPlaceHolder1$rptr_cen$ctl03$hfd_StateId':"2",
@@ -152,12 +155,6 @@ try: # Main exception handler
 
         componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
 
-       # state_eventValVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
-        state_viewStateVal = componentPage.find('input',{'id':'__VIEWSTATE'})['value']
-        districtOptions = []
-        districtOptionVals = []
-        districtSelection = componentPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlComponent'})
-        districtOptions = districtSelection.findAll('option',{'selected':''})
         for districtOption in districtOptions:
             if 'All District' not in districtOption.text and 'STATE HEADQUARTER' not in districtOption.text: # We do not want the top level data for the state or state headquarter data
                 districtOptionVal = districtOption['value']
