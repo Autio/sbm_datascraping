@@ -15,31 +15,24 @@ try: # Main exception handler
     startTime = time.time()
 
     # Configuration of request variables
-    #url_SBM_TargetVsAchievement = 'http://sbm.gov.in/sbmreport/Report/Physical/SBM_TargetVsAchievement.aspx'
-    url_SBM_FinanceProgress = 'http://sbm.gov.in/sbmreport/Report/Financial/SBM_StateReleaseAllocationincludingUnapproved.aspx'
+    url_SBM_TargetVsAchievement = 'http://sbm.gov.in/sbmreport/Report/Physical/SBM_TargetVsAchievement.aspx'
 
-    #stateKey = 'ctl00$ContentPlaceHolder1$ddlState'
-    #stateVal = ''
-    #districtKey = 'ctl00$ContentPlaceHolder1$ddlDistrict'
-    #districtVal = ''
-    #blockKey = 'ctl00$ContentPlaceHolder1$ddlBlock'
-    #blockVal = ''
-
-    # For finance progress
-    componentKey = 'ctl00$ContentPlaceHolder1$ddlComponent'
-    componentVal = ''
-    finyearKey = 'ctl00$ContentPlaceHolder1$ddlFinYear'
-    finyearVal = ''
+    stateKey = 'ctl00$ContentPlaceHolder1$ddlState'
+    stateVal = ''
+    districtKey = 'ctl00$ContentPlaceHolder1$ddlDistrict'
+    districtVal = ''
+    blockKey = 'ctl00$ContentPlaceHolder1$ddlBlock'
+    blockVal = ''
 
     submitKey = 'ctl00$ContentPlaceHolder1$btnSubmit'
-    submitVal = 'Submit'
+    submitVal = 'View Report'
 
     targetKey = '__EVENTTARGET'
     targetVal = ''
 
     # __EVENTVALIDATION and __VIEWSTATE are dynamic authentication values which must be freshly updated when making a request. 
-    eventValKey = '__EVENTVALIDATION'
-    eventVal = ''
+    eventValKey = '__EVENTVALIDATION' 
+    eventValVal = ''
     viewStateKey = '__VIEWSTATE'
     viewStateVal = ''
 
@@ -50,30 +43,24 @@ try: # Main exception handler
         if r.status_code == 200:
             responseHTML = r.content
             responseHTMLParsed = BeautifulSoup(responseHTML, 'html.parser')
-        return responseHTMLParsed
+        return responseHTMLParsed	
 
-    # Load the default page and scrape the component, finance year and authentication values
-    initPage = parsePOSTResponse(url_SBM_FinanceProgress)
-    eventVal = initPage.find('input',{'id':'__EVENTVALIDATION'})['value']
+    # Load the default page and scrape the state and authentication values   
+    initPage = parsePOSTResponse(url_SBM_TargetVsAchievement)
+    eventValVal = initPage.find('input',{'id':'__EVENTVALIDATION'})['value']
     viewStateVal = initPage.find('input',{'id':'__VIEWSTATE'})['value']
-    componentOptions = []
-    componentOptionVals = []
-    componentSelection = initPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlComponent'}) #changed for link 2
-    componentOptions = componentSelection.findAll('option',{'contents':''}) # changed from selection to contents
-    for componentOption in componentOptions:
-        componentOptionVal = componentOption['value']
-        componentOptionVals.append(componentOptionVal)
-    finyearOptions = []
-    finyearOptionVals = []
-    finyearSelection = initPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlFinYear'})
-    finyearOptions = finyearSelection.findAll('option',{'contents':''})
-    for finyearOption in finyearOptions:
-        finyearOptionVal = finyearOption['value']
-        finyearOptionVals.append(finyearOptionVal)
+    stateOptions = []
+    stateOptionVals = []
+    stateSelection = initPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlState'})
+    stateOptions = stateSelection.findAll('option',{'selected':''})
+    for stateOption in stateOptions:
+        if 'All State' not in stateOption.text:
+            stateOptionVal = stateOption['value']
+            stateOptionVals.append(stateOptionVal)
 
     # Initialise workbook
     todaysDate = time.strftime('%d-%m-%Y')
-    desktopFile = os.path.expanduser('~/Desktop/SBM_FinanceProgress_' + todaysDate + '.xlsx')
+    desktopFile = os.path.expanduser('~/Desktop/SBM_TargetVsAchievement_' + todaysDate + '.xlsx')
     wb = xlsxwriter.Workbook(desktopFile)
     ws = wb.add_worksheet('SBM Test')
     ws.set_column('A:AZ', 22) 
@@ -84,31 +71,24 @@ try: # Main exception handler
     lastBlockReportTable = ''
 
     # Global variable for keeping track of the state
-    componentCount = 1
+    stateCount = 1
 
     # MAIN LOOP: loop through STATE values and scrape district and authentication values for each
-    for componentOptionVal in componentOptionVals: # For testing, we can limit the states processed due to long runtime
-        # params for Financial Progress: __EVENTTARGET, __EVENTARGUMENT,
-        # LASTFOCUS, __VIEWSTATE, __EVENTVALIDATION,
-        # ctl00$ContentPlaceholder1$ddlComponent, ctl00$ContentPlaceHolder1$ddlFinYear
-
+    for stateOptionVal in stateOptionVals: # For testing, we can limit the staes processed due to long runtime
         postParams = {
-            eventValKey:eventVal,
+            eventValKey:eventValVal,
             viewStateKey:viewStateVal,
-            componentKey: 'C', # componentOptionVal,
-            finyearKey: '2016-2017', #finyearOptionVal,
-            submitKey:submitVal
-
-         #  districtKey:'-1',
-         #  blockKey:'-1',
-         #   targetKey:'ctl00$ContentPlaceHolder1$ddlComponent'
+            stateKey:stateOptionVal,
+            districtKey:'-1',
+            blockKey:'-1',
+            targetKey:'ctl00$ContentPlaceHolder1$ddlState'
         }
-        componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
-        state_eventValVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
-        state_viewStateVal = componentPage.find('input',{'id':'__VIEWSTATE'})['value']
+        statePage = parsePOSTResponse(url_SBM_TargetVsAchievement, postParams)
+        state_eventValVal = statePage.find('input',{'id':'__EVENTVALIDATION'})['value']
+        state_viewStateVal = statePage.find('input',{'id':'__VIEWSTATE'})['value']
         districtOptions = []
         districtOptionVals = []
-        districtSelection = componentPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlComponent'})
+        districtSelection = statePage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlDistrict'})
         districtOptions = districtSelection.findAll('option',{'selected':''})
         for districtOption in districtOptions:
             if 'All District' not in districtOption.text and 'STATE HEADQUARTER' not in districtOption.text: # We do not want the top level data for the state or state headquarter data
@@ -119,8 +99,8 @@ try: # Main exception handler
         for districtOptionVal in districtOptionVals:        
             state_postParams = {
                 eventValKey:state_eventValVal,
-                viewcomponentKey:state_viewStateVal,
-                componentKey:componentVal,
+                viewStateKey:state_viewStateVal,
+                stateKey:stateOptionVal,
                 districtKey:districtOptionVal,
                 blockKey:'-1',
                 targetKey:'ctl00$ContentPlaceHolder1$ddlDistrict'
@@ -142,8 +122,8 @@ try: # Main exception handler
             for blockOptionVal in blockOptionVals:
                 block_postParams = {
                     eventValKey:district_eventValVal,
-                    viewComponentKey:district_viewStateVal,
-                    componentKey:componentOptionVal,
+                    viewStateKey:district_viewStateVal,
+                    stateKey:stateOptionVal,
                     districtKey:districtOptionVal,
                     blockKey:blockOptionVal,
                     submitKey:submitVal
@@ -168,7 +148,7 @@ try: # Main exception handler
                     blockNameText = blockNameText.replace('Block Name:-','');
                     blockNameText = blockNameText.strip();
 
-                    print ('Currently processing: ' + stateNameText + ' (' + str(componentCount) + ' of ' + str(len(componentOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + blockNameText + ' (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
+                    print ('Currently processing: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + blockNameText + ' (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
 
                     # Loop through rows and write data
                     blockReportRows = blockReportTable.find('tbody').findAll('tr') # Only process table body data
@@ -201,7 +181,7 @@ try: # Main exception handler
                         cellCount = 0
                 blockCount = blockCount + 1
             districtCount = districtCount + 1
-        componentCount = componentCount + 1
+        stateCount = stateCount + 1
 
     # Write table headers based on final report
     print ('Processing table headers...')
