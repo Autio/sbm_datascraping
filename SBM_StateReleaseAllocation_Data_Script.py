@@ -69,7 +69,7 @@ try: # Main exception handler
     todaysDate = time.strftime('%d-%m-%Y')
     desktopFile = os.path.expanduser('~/Desktop/SBM_FinanceProgress_' + todaysDate + '.xlsx')
     wb = xlsxwriter.Workbook(desktopFile)
-    ws = wb.add_worksheet('SBM Test')
+    ws = wb.add_worksheet('SBM')
     ws.set_column('A:AZ', 22)
     rowCount = 1 # Adjust one row for printing table headers after main loop
     cellCount = 0
@@ -89,18 +89,70 @@ try: # Main exception handler
         postParams = {
             eventValKey:eventVal,
             viewStateKey:viewStateVal,
-            componentKey: 'C', # componentOptionVal,
-            finYearKey: '2016-2017', #finyearOptionVal,
-            submitKey:submitVal
+            componentKey: componentOptionVal,
+            finYearKey: finYearOptionVal,
+            submitKey: submitVal
         }
         componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
 
         stateOptions = []
         stateOptionVals = []
         stateSelection = componentPage.findAll('a', {'id': re.compile('stName$')})
-        stateOptions = stateSelection.findAll('option',{'contents':''})
+        # Find all states and links to click through
+        for s in stateSelection:
+            stateOptionVal = s.text
+            stateOptionVals.append(stateOptionVal)
 
-        state_eventValVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
+
+
+        eventVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
+        viewStateVal = componentPage.find('input',{'id':'__VIEWSTATE'})['value']
+
+        # Need to call Javascript __doPostBack() on the links
+        postParams = {
+            '__EVENTARGUMENT' : '',
+            '__EVENTTARGET' : 'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$lnkbtn_stName',
+            eventValKey:eventVal,
+            viewStateKey:viewStateVal,
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$hfd_StateId':"26",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$hfd_StateId':"26",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl02$hfd_StateId':"1",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl03$hfd_StateId':"2",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl04$hfd_StateId':"3",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl05$hfd_StateId':"4",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl06$hfd_StateId':"34",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl07$hfd_StateId':"28",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl08$hfd_StateId':"5",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl09$hfd_StateId':"6",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl10$hfd_StateId':"7",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl11$hfd_StateId':"8",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl12$hfd_StateId':"9",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl13$hfd_StateId':"35",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl14$hfd_StateId':"10",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl15$hfd_StateId':"11",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl16$hfd_StateId':"12",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl17$hfd_StateId':"13",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl18$hfd_StateId':"14",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl19$hfd_StateId':"15",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl20$hfd_StateId':"16",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl21$hfd_StateId':"17",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl22$hfd_StateId':"18",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl23$hfd_StateId':"32",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl24$hfd_StateId':"19",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl25$hfd_StateId':"20",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl26$hfd_StateId':"21",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl27$hfd_StateId':"22",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl28$hfd_StateId':"36",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl29$hfd_StateId':"23",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl30$hfd_StateId':"24",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl31$hfd_StateId':"33",
+            'ctl00$ContentPlaceHolder1$rptr_cen$ctl32$hfd_StateId':"25"
+
+        }
+
+        componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
+
+       # state_eventValVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
         state_viewStateVal = componentPage.find('input',{'id':'__VIEWSTATE'})['value']
         districtOptions = []
         districtOptionVals = []
@@ -202,4 +254,5 @@ try: # Main exception handler
 except: # Main exception handler
     print('The program did not complete.')
     e = sys.exc_info()
-    ctypes.windll.user32.MessageBoxW(0, "Sorry, there was a problem running this program.\n\nFor developer reference:\n\n" + str(e), "The program did not complete :-/", 1)
+    print (e)
+   # ctypes.windll.user32.MessageBoxW(0, "Sorry, there was a problem running this program.\n\nFor developer reference:\n\n" + str(e), "The program did not complete :-/", 1)
