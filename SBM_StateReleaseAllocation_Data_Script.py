@@ -10,6 +10,7 @@ try: # Main exception handler
     import xlsxwriter # for exporting to Excel - need xlsx as over 200k rows of data
     import os # to find user's desktop path
     import time # for adding datestamp to file output
+    import re # for regular expressions
 
     # Timing the script
     startTime = time.time()
@@ -18,18 +19,11 @@ try: # Main exception handler
     #url_SBM_TargetVsAchievement = 'http://sbm.gov.in/sbmreport/Report/Physical/SBM_TargetVsAchievement.aspx'
     url_SBM_FinanceProgress = 'http://sbm.gov.in/sbmreport/Report/Financial/SBM_StateReleaseAllocationincludingUnapproved.aspx'
 
-    #stateKey = 'ctl00$ContentPlaceHolder1$ddlState'
-    #stateVal = ''
-    #districtKey = 'ctl00$ContentPlaceHolder1$ddlDistrict'
-    #districtVal = ''
-    #blockKey = 'ctl00$ContentPlaceHolder1$ddlBlock'
-    #blockVal = ''
-
     # For finance progress
     componentKey = 'ctl00$ContentPlaceHolder1$ddlComponent'
     componentVal = ''
-    finyearKey = 'ctl00$ContentPlaceHolder1$ddlFinYear'
-    finyearVal = ''
+    finYearKey = 'ctl00$ContentPlaceHolder1$ddlFinYear'
+    finYearVal = ''
 
     submitKey = 'ctl00$ContentPlaceHolder1$btnSubmit'
     submitVal = 'Submit'
@@ -37,7 +31,7 @@ try: # Main exception handler
     targetKey = '__EVENTTARGET'
     targetVal = ''
 
-    # __EVENTVALIDATION and __VIEWSTATE are dynamic authentication values which must be freshly updated when making a request. 
+    # __EVENTVALIDATION and __VIEWSTATE are dynamic authentication values which must be freshly updated when making a request.
     eventValKey = '__EVENTVALIDATION'
     eventVal = ''
     viewStateKey = '__VIEWSTATE'
@@ -64,19 +58,19 @@ try: # Main exception handler
         componentOptionVal = componentOption['value']
         componentOptionVals.append(componentOptionVal)
     finyearOptions = []
-    finyearOptionVals = []
-    finyearSelection = initPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlFinYear'})
-    finyearOptions = finyearSelection.findAll('option',{'contents':''})
-    for finyearOption in finyearOptions:
-        finyearOptionVal = finyearOption['value']
-        finyearOptionVals.append(finyearOptionVal)
+    finYearOptionVals = []
+    finYearSelection = initPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlFinYear'})
+    finYearOptions = finYearSelection.findAll('option',{'contents':''})
+    for finYearOption in finYearOptions:
+        finYearOptionVal = finYearOption['value']
+        finYearOptionVals.append(finYearOptionVal)
 
     # Initialise workbook
     todaysDate = time.strftime('%d-%m-%Y')
     desktopFile = os.path.expanduser('~/Desktop/SBM_FinanceProgress_' + todaysDate + '.xlsx')
     wb = xlsxwriter.Workbook(desktopFile)
     ws = wb.add_worksheet('SBM Test')
-    ws.set_column('A:AZ', 22) 
+    ws.set_column('A:AZ', 22)
     rowCount = 1 # Adjust one row for printing table headers after main loop
     cellCount = 0
 
@@ -96,10 +90,16 @@ try: # Main exception handler
             eventValKey:eventVal,
             viewStateKey:viewStateVal,
             componentKey: 'C', # componentOptionVal,
-            finyearKey: '2016-2017', #finyearOptionVal,
+            finYearKey: '2016-2017', #finyearOptionVal,
             submitKey:submitVal
         }
         componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
+
+        stateOptions = []
+        stateOptionVals = []
+        stateSelection = componentPage.findAll('a', {'id': re.compile('stName$')})
+        stateOptions = stateSelection.findAll('option',{'contents':''})
+
         state_eventValVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
         state_viewStateVal = componentPage.find('input',{'id':'__VIEWSTATE'})['value']
         districtOptions = []
@@ -110,41 +110,6 @@ try: # Main exception handler
             if 'All District' not in districtOption.text and 'STATE HEADQUARTER' not in districtOption.text: # We do not want the top level data for the state or state headquarter data
                 districtOptionVal = districtOption['value']
                 districtOptionVals.append(districtOptionVal)
-        # Loop through the DISTRICT values and scrape block and authentication values for each
-        districtCount = 1
-        for districtOptionVal in districtOptionVals:        
-            state_postParams = {
-                eventValKey:state_eventValVal,
-                viewcomponentKey:state_viewStateVal,
-                componentKey:componentVal,
-                districtKey:districtOptionVal,
-                blockKey:'-1',
-                targetKey:'ctl00$ContentPlaceHolder1$ddlDistrict'
-            }
-            districtPage = parsePOSTResponse(url_SBM_TargetVsAchievement, state_postParams)
-            district_eventValVal = districtPage.find('input',{'id':'__EVENTVALIDATION'})['value']
-            district_viewStateVal = districtPage.find('input',{'id':'__VIEWSTATE'})['value']
-            blockOptions = []
-            blockOptionVals = []
-            blockSelection = districtPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlBlock'})
-            blockOptions = blockSelection.findAll('option',{'selected':''})
-            for blockOption in blockOptions:
-                if 'All Block' not in blockOption.text: # We do not want the top level data for the block
-                    blockOptionVal = blockOption['value']
-                    blockOptionVals.append(blockOptionVal)
-
-            # Loop through the BLOCK values and request the report for each
-            blockCount = 1
-            for blockOptionVal in blockOptionVals:
-                block_postParams = {
-                    eventValKey:district_eventValVal,
-                    viewComponentKey:district_viewStateVal,
-                    componentKey:componentOptionVal,
-                    districtKey:districtOptionVal,
-                    blockKey:blockOptionVal,
-                    submitKey:submitVal
-                }
-                blockReport = parsePOSTResponse(url_SBM_TargetVsAchievement, block_postParams)
 
                 # Process table data and output 
                 blockReportTable = blockReport.find('table')
