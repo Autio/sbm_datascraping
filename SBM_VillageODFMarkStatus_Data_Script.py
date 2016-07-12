@@ -1,19 +1,19 @@
-# Tool to scrape Swachh Bharat Mission data from the sbm.gov.in government website #
-# Daniel Robertson                                                                 #
-# Petri Autio                                                                      #
-# 2016                                                                             #
+### Tool to scrape Swachh Bharat Mission data from the sbm.gov.in government website ###
+### Daniel Robertson                                                                 ###
+### Petri Autio                                                                      ###
+### 2016                                                                             ###
 import ctypes # for popup window
 import sys # for exception information
 
 try: # Main exception handler
     
-    import requests  # for HTTP requests
-    from bs4 import BeautifulSoup  # for HTML parsing
-    import bs4  # for type checking
-    import xlsxwriter  # for exporting to Excel - need xlsx as over 200k rows of data
-    import os  # to find user's desktop path
-    import time  # for adding datestamp to file output
-    import re  # for regular expressions
+    import requests # for HTTP requests
+    from bs4 import BeautifulSoup # for HTML parsing
+    import bs4 # for type checking
+    import xlsxwriter # for exporting to Excel - need xlsx as over 200k rows of data
+    import os # to find user's desktop path
+    import time # for adding datestamp to file output
+    import re # for regular expressions
 
     # Timing the script
     startTime = time.time()
@@ -234,7 +234,7 @@ try: # Main exception handler
                             cellCount = cellCount + 1
                             ws.write(rowCount,cellCount,finYearOptionVal)
                             cellCount = cellCount + 1
-                            ws.write(rowCount,cellCount,componentName)
+                            ws.write(rowCount,cellCount,s[0])
                             cellCount = cellCount + 1
                             for td in cols:
                                 # Tidy and format the cell content
@@ -257,13 +257,14 @@ try: # Main exception handler
                 componentCount = componentCount + 1
 
 
+                    
     print ('Done processing.' + ' Script executed in ' + str(int(time.time()-startTime)) + ' seconds.')
     # END MAIN LOOP
 
     # Finally, save the workbook
     wb.close()
 
-except:  # Main exception handler
+except: # Main exception handler
     print('The program did not complete.')
     e = sys.exc_info()
     print (e)
