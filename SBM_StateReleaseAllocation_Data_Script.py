@@ -1,3 +1,7 @@
+### Tool to scrape Swachh Bharat Mission data from the sbm.gov.in government website ###
+### Daniel Robertson                                                                 ###
+### Petri Autio                                                                      ###
+### 2016                                                                             ###
 import ctypes # for popup window
 import sys # for exception information
 
@@ -23,17 +27,18 @@ try: # Main exception handler
     finYearKey = 'ctl00$ContentPlaceHolder1$ddlFinYear'
     finYearVal = ''
 
+    # submit button on first page
     submitKey = 'ctl00$ContentPlaceHolder1$btnSubmit'
     submitVal = 'Submit'
 
-    targetKey = '__EVENTTARGET'
-    targetVal = ''
-
-    # __EVENTVALIDATION and __VIEWSTATE are dynamic authentication values which must be freshly updated when making a request.
+    # __EVENTVALIDATION. __VIEWSTATE and __EVENTTARGET are dynamic authentication values which must be freshly updated when making a request.
     eventValKey = '__EVENTVALIDATION'
     eventVal = ''
     viewStateKey = '__VIEWSTATE'
     viewStateVal = ''
+
+    targetKey = '__EVENTTARGET'
+    targetVal = ''
 
     # Function to return HTML parsed with BeautifulSoup from a POST request URL and parameters.
     def parsePOSTResponse(URL, parameters=''):
@@ -60,6 +65,7 @@ try: # Main exception handler
     finYearSelection = initPage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlFinYear'})
     finYearOptions = finYearSelection.findAll('option',{'contents':''})
     for finYearOption in finYearOptions:
+        # Don't include the -2 option which only indicates nothing has been selected in the dropdown
         if not finYearOption['value'] == '-2':
             finYearOptionVal = finYearOption['value']
             finYearOptionVals.append(finYearOptionVal)
@@ -74,17 +80,21 @@ try: # Main exception handler
     cellCount = 0
 
     # Global variable to store final table data
-    lastBlockReportTable = ''
+    lastTable = ''
 
     # Global variable for keeping track of the state
     componentCount = 1
 
-    # MAIN LOOP: loop through STATE values and scrape district and authentication values for each
+    # Global variable for ensuring headers get added only once
+    headerFlag = False
+
+    # MAIN LOOP: loop through component values. Scrape link values from page
     for componentOptionVal in componentOptionVals: # For testing, we can limit the states processed due to long runtime
 
         eventVal = initPage.find('input',{'id':'__EVENTVALIDATION'})['value']
         viewStateVal = initPage.find('input',{'id':'__VIEWSTATE'})['value']
 
+        # Loop through financial years
         for finYearOptionVal in finYearOptionVals:
             postParams = {
                 eventValKey:eventVal,
@@ -95,13 +105,12 @@ try: # Main exception handler
             }
             componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
 
-            # Should find all event targets too
+            # Find States
             stateOptions = []
             stateOptionVals = []
-
             stateSelection = componentPage.findAll('a', {'id': re.compile('stName$')})
             # Find all states and links to click through
-            for s in stateSelection[10:18]:
+            for s in stateSelection:
                 stateOptionVal = s.text
                 targetOptionVal = s['id']
                 stateOptionVals.append([stateOptionVal, targetOptionVal])
@@ -122,6 +131,7 @@ try: # Main exception handler
                 stateLinkVal = stateLinkVal.replace('rptr$cen', 'rptr_cen')
                 stateLinkVal = stateLinkVal.replace('lnkbtn$st', 'lnkbtn_st')
 
+                # TODO: Make the params neater with a dictionary
                 # Need to call Javascript __doPostBack() on the links
                 postParams = {
                     '__EVENTARGUMENT': '',
@@ -168,6 +178,41 @@ try: # Main exception handler
                 # Process table data and output
                 ReportTable = componentPage.find('table')
 
+                # Write table headers
+                if not headerFlag:
+                    print ('Processing table headers...')
+                    headerRows = ReportTable.find('thead').findAll('tr')  # Only process table header data
+                    headerTableArray = []
+                    rowCount = 0
+
+                    headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
+
+                    for tr in headerRows[len(headerRows)-1:len(headerRows)]:  # last headeR row only
+                        cellCount = 0
+                        headerTableRow = []
+                        headerCols = tr.findAll('th')
+                        # Write state, district, and block headers
+                        ws.write(rowCount,cellCount,'Component name (State or Centre)',headerStyle)
+                        cellCount = cellCount+1
+                        ws.write(rowCount,cellCount,'Financial Year',headerStyle)
+                        cellCount = cellCount+1
+                        ws.write(rowCount,cellCount,'State Name',headerStyle)
+                        cellCount = cellCount+1
+                        for td in headerCols:
+                            # Tidy the cell content
+                            cellText = td.text.replace('\*','')
+                            cellText = cellText.strip()
+                            # Store the cell data
+                            headerTableRow.append(cellText)
+                            ws.write(rowCount,cellCount,cellText,headerStyle)
+                            cellCount = cellCount+1
+                        rowCount = rowCount + 1
+
+
+                    headerFlag = True
+
+
+                # Write table data
                 if isinstance(ReportTable,bs4.element.Tag): # Check whether data table successfully found on the page. Some blocks have no data.
                      # Store table for writing headers after loop
                     lastReportTable = ReportTable
@@ -189,8 +234,8 @@ try: # Main exception handler
                                 cellText = td.text.replace('\*','')
                                 cellText = cellText.strip()
                                 try:
-                                    int(cellText)
-                                    cellText = int(cellText)
+                                    long(cellText)
+                                    cellText = long(cellText)
                                 except:
                                     cellText = cellText
                                 # Store the cell data
@@ -202,35 +247,7 @@ try: # Main exception handler
                         sta = "no data in state"
                 componentCount = componentCount + 1
 
-        # Write table headers based on final report
-        # print ('Processing table headers...')
-        # blockReportHeaderRows = lastBlockReportTable.find('thead').findAll('tr') # Only process table header data
-        # headerTableArray = []
-        # rowCount = 0
-        # cellCount = 0
-        # headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
 
-        # for tr in blockReportHeaderRows[len(blockReportHeaderRows)-2:len(blockReportHeaderRows)-1]: # State, district, and block (bottom of table) + other headers dropped
-        #     headerTableRow = []
-        #     headerCols = tr.findAll('th')
-        #     # Write state, district, and block headers
-        #     ws.write(rowCount,cellCount,'State Name',headerStyle)
-        #     cellCount = cellCount+1
-        #     ws.write(rowCount,cellCount,'District Name',headerStyle)
-        #     cellCount = cellCount+1
-        #     ws.write(rowCount,cellCount,'Block Name',headerStyle)
-        #     cellCount = cellCount+1
-        #     for td in headerCols:
-        #         # Tidy the cell content
-        #         cellText = td.text.replace('\*','')
-        #         cellText = cellText.strip()
-        #         # Store the cell data
-        #         headerTableRow.append(cellText)
-        #         ws.write(rowCount,cellCount,cellText,headerStyle)
-        #         cellCount = cellCount+1
-        #     headerTableArray.append(tableRow)
-        #     rowCount = rowCount + 1
-        #     cellCount = 0
                     
     print ('Done processing.' + ' Script executed in ' + str(int(time.time()-startTime)) + ' seconds.')
     # END MAIN LOOP
@@ -242,4 +259,4 @@ except: # Main exception handler
     print('The program did not complete.')
     e = sys.exc_info()
     print (e)
-   # ctypes.windll.user32.MessageBoxW(0, "Sorry, there was a problem running this program.\n\nFor developer reference:\n\n" + str(e), "The program did not complete :-/", 1)
+    ctypes.windll.user32.MessageBoxW(0, "Sorry, there was a problem running this program.\n\nFor developer reference:\n\n" + str(e), "The program did not complete :-/", 1)
