@@ -4,7 +4,7 @@
 ### 2016                                                                             ###
 import ctypes # for popup window
 import sys # for exception information
-
+__author__ = 'petriau'
 try: # Main exception handler
     
     import requests # for HTTP requests

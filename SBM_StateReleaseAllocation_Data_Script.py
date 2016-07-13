@@ -2,6 +2,8 @@
 # Daniel Robertson                                                                 #
 # Petri Autio                                                                      #
 # 2016                                                                             #
+__author__ = 'petriau'
+
 import ctypes # for popup window
 import sys # for exception information
 
@@ -48,6 +50,12 @@ try: # Main exception handler
             responseHTML = r.content
             responseHTMLParsed = BeautifulSoup(responseHTML, 'html.parser')
         return responseHTMLParsed
+
+    # Given two dicts, merge them into a new dict as a shallow copy.
+    def merge_two_dicts(x, y):
+        z = x.copy()
+        z.update(y)
+        return z
 
     # Load the default page and scrape the component, finance year and authentication values
     initPage = parsePOSTResponse(url_SBM_FinanceProgress)
@@ -109,6 +117,8 @@ try: # Main exception handler
                 finYearKey: finYearOptionVal,
                 submitKey: submitVal
             }
+
+
             componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
 
             # Find States
@@ -127,8 +137,16 @@ try: # Main exception handler
             info = {'__EVENTARGUMENT' : '', '__EVENTTARGET' : 'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$lnkbtn_stName', eventValKey:eventVal,
                 viewStateKey:viewStateVal}
 
-            # create dictionary from list
-            paramDictionary = data={key: str(value) for key, value in info.items()}
+            # The parameters are quite elaborate needing an entry per link so it's best to put them in a dict
+            # Find Links
+            linkOptions = []
+            linkOptionVals = []
+            linkSelection = componentPage.findAll('input', {'id': re.compile('StateId$')})
+            for l in linkSelection:
+                linkOptions.append([l['name'], l['value']])
+            # write links into dictionary to be passed into POST params
+            paramDict = {key: str(value) for key, value in linkOptions}
+
             stateCount = 1
             # Should cycle through all the items in stateOptions
             for s in stateOptionVals:
@@ -137,47 +155,15 @@ try: # Main exception handler
                 stateLinkVal = stateLinkVal.replace('rptr$cen', 'rptr_cen')
                 stateLinkVal = stateLinkVal.replace('lnkbtn$st', 'lnkbtn_st')
 
-                # TODO: Make the params neater with a dictionary
                 # Need to call Javascript __doPostBack() on the links
                 postParams = {
                     '__EVENTARGUMENT': '',
                     '__EVENTTARGET': stateLinkVal,
                     eventValKey: eventVal,
                     viewStateKey: viewStateVal,
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$hfd_StateId':"26",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl02$hfd_StateId':"1",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl03$hfd_StateId':"2",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl04$hfd_StateId':"3",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl05$hfd_StateId':"4",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl06$hfd_StateId':"34",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl07$hfd_StateId':"28",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl08$hfd_StateId':"5",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl09$hfd_StateId':"6",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl10$hfd_StateId':"7",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl11$hfd_StateId':"8",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl12$hfd_StateId':"9",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl13$hfd_StateId':"35",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl14$hfd_StateId':"10",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl15$hfd_StateId':"11",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl16$hfd_StateId':"12",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl17$hfd_StateId':"13",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl18$hfd_StateId':"14",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl19$hfd_StateId':"15",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl20$hfd_StateId':"16",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl21$hfd_StateId':"17",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl22$hfd_StateId':"18",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl23$hfd_StateId':"32",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl24$hfd_StateId':"19",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl25$hfd_StateId':"20",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl26$hfd_StateId':"21",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl27$hfd_StateId':"22",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl28$hfd_StateId':"36",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl29$hfd_StateId':"23",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl30$hfd_StateId':"24",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl31$hfd_StateId':"33",
-                    'ctl00$ContentPlaceHolder1$rptr_cen$ctl32$hfd_StateId':"25"
-
                 }
+                # Merge with dict of links
+                postParams = merge_two_dicts(postParams, paramDict)
 
                 componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
 
@@ -230,11 +216,11 @@ try: # Main exception handler
                             tableRow = []
                             cols = tr.findAll('td')
                             # Write stored information in columns prior to data: Financial Year, State/Center, Statename
-                            ws.write(rowCount,cellCount,componentOptionVal)
+                            ws.write(rowCount,cellCount,componentName)
                             cellCount = cellCount + 1
                             ws.write(rowCount,cellCount,finYearOptionVal)
                             cellCount = cellCount + 1
-                            ws.write(rowCount,cellCount,componentName)
+                            ws.write(rowCount,cellCount,s[0])
                             cellCount = cellCount + 1
                             for td in cols:
                                 # Tidy and format the cell content
