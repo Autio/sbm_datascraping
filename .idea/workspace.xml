@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fff116a6-b72a-4d0a-b7f0-4d0a6e80a786" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/GeneratorTest.py" />
-      <change type="DELETED" beforePath="C:\Users\Petriau\Documents\sbm_datascraping\SBM_FinanceProgress_12-07-2016.xlsx" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SBM_StateReleaseAllocation_Data_Script.py" afterPath="$PROJECT_DIR$/SBM_StateReleaseAllocation_Data_Script.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py" afterPath="$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="sbm_datascraping.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -27,14 +23,34 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="SBM_StateReleaseAllocation_Data_Script.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="SBM_StateReleaseAllocation_Data_Script.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SBM_StateReleaseAllocation_Data_Script.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.68580544">
-              <caret line="233" column="53" selection-start-line="233" selection-start-column="53" selection-end-line="233" selection-end-column="53" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="111" column="0" selection-start-line="111" selection-start-column="0" selection-end-line="119" selection-end-column="0" />
               <folding>
                 <element signature="e#364#396#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SBM_VillageODFMarkStatus_Data_Script.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.30564263">
+              <caret line="135" column="31" selection-start-line="135" selection-start-column="31" selection-end-line="135" selection-end-column="31" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="pydevd.py" pinned="false" current-in-tab="false">
+        <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="2356" column="0" selection-start-line="2356" selection-start-column="0" selection-end-line="2356" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -51,31 +67,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="pydevd.py" pinned="false" current-in-tab="false">
-        <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
+      <file leaf-file-name="SBM_TargetVsAchievement_Data_Script.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SBM_TargetVsAchievement_Data_Script.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="2356" column="0" selection-start-line="2356" selection-start-column="0" selection-end-line="2356" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SBM_VillageODFMarkStatus_Data_Script.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="6" column="22" selection-start-line="6" selection-start-column="22" selection-end-line="6" selection-end-column="22" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SBM_SLWMExpenditureAchievement_Data_Script.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/SBM_SLWMExpenditureAchievement_Data_Script.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="58" selection-end-column="50" />
               <folding />
             </state>
           </provider>
@@ -86,16 +82,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="416" column="37" selection-start-line="416" selection-start-column="37" selection-end-line="416" selection-end-column="37" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SBM_TargetVsAchievement_Data_Script.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/SBM_TargetVsAchievement_Data_Script.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="151" column="0" selection-start-line="150" selection-start-column="18" selection-end-line="151" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -131,9 +117,9 @@
         <option value="$USER_HOME$/Dropbox (PSU-WAUK)/04 Accountability &amp; Effectiveness/05 Projects/03 Support for other teams/02 India SBM/SBM_TargetVsAchievement_Data_Script2.py" />
         <option value="$PROJECT_DIR$/SBM_TargetVsAchievement_Data_Script2.py" />
         <option value="$PROJECT_DIR$/SBM_TargetVsAchievement_Data_Script.py" />
-        <option value="$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py" />
         <option value="$PROJECT_DIR$/GeneratorTest.py" />
         <option value="$PROJECT_DIR$/SBM_StateReleaseAllocation_Data_Script.py" />
+        <option value="$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py" />
       </list>
     </option>
   </component>
@@ -179,6 +165,16 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="sbm_datascraping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="sbm_datascraping" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
     </panes>
@@ -186,7 +182,7 @@
   <component name="PropertiesComponent">
     <property name="last_opened_file_path" value="$PROJECT_DIR$/SBM_TargetVsAchievement_Data_Script.py" />
     <property name="recentsLimit" value="5" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="project.propDebugger" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
   <component name="RecentsManager">
@@ -194,7 +190,7 @@
       <recent name="C:\Users\Petriau\Documents\sbm_datascraping" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.SBM_StateReleaseAllocation_Data_Script">
+  <component name="RunManager" selected="Python.SBM_VillageODFMarkStatus_Data_Script">
     <configuration default="false" name="SBM draft script" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -259,6 +255,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="sbm_datascraping" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/GeneratorTest.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="SBM_VillageODFMarkStatus_Data_Script" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="sbm_datascraping" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -385,18 +398,20 @@
       <option name="USE_KEYWORD" value="false" />
       <method />
     </configuration>
-    <list size="4">
+    <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.SBM draft script" />
       <item index="1" class="java.lang.String" itemvalue="Python.SBM_TargetVsAchievement_Data_Script2" />
       <item index="2" class="java.lang.String" itemvalue="Python.SBM_StateReleaseAllocation_Data_Script" />
       <item index="3" class="java.lang.String" itemvalue="Python.GeneratorTest" />
+      <item index="4" class="java.lang.String" itemvalue="Python.SBM_VillageODFMarkStatus_Data_Script" />
     </list>
     <recent_temporary>
-      <list size="4">
-        <item index="0" class="java.lang.String" itemvalue="Python.SBM_StateReleaseAllocation_Data_Script" />
-        <item index="1" class="java.lang.String" itemvalue="Python.GeneratorTest" />
-        <item index="2" class="java.lang.String" itemvalue="Python.SBM_TargetVsAchievement_Data_Script2" />
-        <item index="3" class="java.lang.String" itemvalue="Python.SBM draft script" />
+      <list size="5">
+        <item index="0" class="java.lang.String" itemvalue="Python.SBM_VillageODFMarkStatus_Data_Script" />
+        <item index="1" class="java.lang.String" itemvalue="Python.SBM_StateReleaseAllocation_Data_Script" />
+        <item index="2" class="java.lang.String" itemvalue="Python.GeneratorTest" />
+        <item index="3" class="java.lang.String" itemvalue="Python.SBM_TargetVsAchievement_Data_Script2" />
+        <item index="4" class="java.lang.String" itemvalue="Python.SBM draft script" />
       </list>
     </recent_temporary>
   </component>
@@ -426,18 +441,18 @@
     <frame x="-1608" y="-908" width="1616" height="916" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.04816223" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23574145" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299363" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32920793" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299363" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" x="-1586" y="-577" width="1572" height="253" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299363" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1656051" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15159236" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24968314" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299363" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="true" weight="0.38726115" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="6" y="-878" width="1579" height="858" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="true" weight="0.38726115" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="128" y="225" width="1579" height="858" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -495,6 +510,11 @@
           <line>67</line>
           <option name="timeStamp" value="59" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py</url>
+          <line>133</line>
+          <option name="timeStamp" value="72" />
+        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
@@ -503,7 +523,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="63" />
+      <option name="time" value="73" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -515,14 +535,6 @@
           <folding>
             <element signature="e#364#396#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="39" column="31" selection-start-line="39" selection-start-column="31" selection-end-line="39" selection-end-column="31" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -678,14 +690,6 @@
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/Dropbox (PSU-WAUK)/04 Accountability &amp; Effectiveness/05 Projects/03 Support for other teams/02 India SBM/SBM_TargetVsAchievement_Data_Script2.py" />
-    <entry file="file://C:/Python27/Lib/HTMLParser.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="147" column="0" selection-start-line="147" selection-start-column="0" selection-end-line="147" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -701,11 +705,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SBM_TargetVsAchievement_Data_Script.py">
+    <entry file="file://$PROJECT_DIR$/GeneratorTest.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="151" column="0" selection-start-line="150" selection-start-column="18" selection-end-line="151" selection-end-column="0" />
-          <folding />
+          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="23" selection-end-column="12" />
+          <folding>
+            <element signature="e#23#59#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -717,10 +723,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py">
+    <entry file="file://C:/Python27/Lib/HTMLParser.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="6" column="22" selection-start-line="6" selection-start-column="22" selection-end-line="6" selection-end-column="22" />
+          <caret line="147" column="0" selection-start-line="147" selection-start-column="0" selection-end-line="147" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -733,23 +739,29 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GeneratorTest.py">
+    <entry file="file://$PROJECT_DIR$/SBM_StateReleaseAllocation_Data_Script.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="23" selection-end-column="12" />
+          <caret line="111" column="0" selection-start-line="111" selection-start-column="0" selection-end-line="119" selection-end-column="0" />
           <folding>
-            <element signature="e#23#59#0" expanded="true" />
+            <element signature="e#364#396#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SBM_StateReleaseAllocation_Data_Script.py">
+    <entry file="file://$PROJECT_DIR$/SBM_TargetVsAchievement_Data_Script.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.68580544">
-          <caret line="233" column="53" selection-start-line="233" selection-start-column="53" selection-end-line="233" selection-end-column="53" />
-          <folding>
-            <element signature="e#364#396#0" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.0">
+          <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="58" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SBM_VillageODFMarkStatus_Data_Script.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.30564263">
+          <caret line="135" column="31" selection-start-line="135" selection-start-column="31" selection-end-line="135" selection-end-column="31" />
+          <folding />
         </state>
       </provider>
     </entry>
