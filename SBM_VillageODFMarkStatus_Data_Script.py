@@ -133,10 +133,40 @@ try: # Main exception handler
 
             componentPage = parsePOSTResponse(url_SBM, postParams)
 
-            # Process Districts
+            eventVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
+            viewStateVal = componentPage.find('input',{'id':'__VIEWSTATE'})['value']
 
+            postParams = {
+                '__EVENTARGUMENT': '',
+                '__EVENTTARGET': "ctl00$ContentPlaceHolder1$Reptdist$ctl01$lbldist",
+                eventValKey: eventVal,
+                viewStateKey: viewStateVal,
+            }
+            # Process Districts by using name links
+            linkOptions = []
+            linkOptions2 = []
+            linkOptionVals = []
+            linkSelection = componentPage.findAll('input', {'id': re.compile('hfCode$')})
+            linkSelection2 = componentPage.findAll('input', {'id': re.compile('hfdtcode$')})
+            linkIndex = 0
+            for link in linkSelection:
+                linkId = link['id'].replace('_','$')
+                linkOptions.append([linkId, link['value']])
+                linkId = linkSelection2[linkIndex]['id'].replace('_','$')
+                linkOptions2.append([linkId, linkSelection2[linkIndex]['value']])
+                # go through both link lists in parallel
+                linkIndex = linkIndex + 1
+
+            # write links into dictionary to be passed into POST params
+            paramDict = {key: str(value) for key, value in linkOptions}
+            paramDict2 = {key: str(value) for key, value in linkOptions2}
+            # and merge the dictionaries
+            paramDict = merge_two_dicts(paramDict, paramDict2)
+            postParams = merge_two_dicts(paramDict, postParams)
             # Then process the numbers next which are the link to the GP level?!?
             # Also goes down to family head name...
+
+            districtPage = parsePOSTResponse(url_SBM, postParams)
 
             # Process table data and output
             ReportTable = componentPage.find('table')
