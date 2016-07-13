@@ -163,85 +163,134 @@ try: # Main exception handler
             # and merge the dictionaries
             paramDict = merge_two_dicts(paramDict, paramDict2)
             postParams = merge_two_dicts(paramDict, postParams)
-            # Then process the numbers next which are the link to the GP level?!?
-            # Also goes down to family head name...
 
             districtPage = parsePOSTResponse(url_SBM, postParams)
 
-            # Process table data and output
-            ReportTable = componentPage.find('table')
+            # Then process the numbers next which are the link to the GP level
+            # Also goes down to family head name...
 
-            # Write table headers
-            if not headerFlag:
-                print ('Processing table headers...')
-                headerRows = ReportTable.find('thead').findAll('tr')  # Only process table header data
-                headerTableArray = []
-                rowCount = 0
+            # Pick out values from the numbers
+            eventVal = districtPage.find('input', {'id': '__EVENTVALIDATION'})['value']
+            viewStateVal = districtPage.find('input', {'id': '__VIEWSTATE'})['value']
 
-                headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
+            GPSelection = districtPage.findAll('a', {'id': re.compile('BlockTotalGP$')})
 
-                for tr in headerRows[len(headerRows)-1:len(headerRows)]:  # last headeR row only
-                    cellCount = 0
-                    headerTableRow = []
-                    headerCols = tr.findAll('th')
-                    # Write state, district, and block headers
-                    ws.write(rowCount,cellCount,'Component name (State or Centre)',headerStyle)
-                    cellCount = cellCount+1
-                    ws.write(rowCount,cellCount,'Financial Year',headerStyle)
-                    cellCount = cellCount+1
-                    ws.write(rowCount,cellCount,'State Name',headerStyle)
-                    cellCount = cellCount+1
-                    for td in headerCols:
-                        # Tidy the cell content
-                        cellText = td.text.replace('\*','')
-                        cellText = cellText.strip()
-                        # Store the cell data
-                        headerTableRow.append(cellText)
-                        ws.write(rowCount,cellCount,cellText,headerStyle)
-                        cellCount = cellCount+1
-                    rowCount = rowCount + 1
+            linkOptions = []
+            linkOptions2 = []
+            linkOptions3 = []
+            linkSelection = districtPage.findAll('input', {'id': re.compile('hfCode$')})
+            linkSelection2 = districtPage.findAll('input', {'id': re.compile('hfdtcode$')})
+            linkSelection3 = districtPage.findAll('input', {'id': re.compile('hfBlkcode$')})
+            linkIndex = 0
+            for link in linkSelection:
+                linkId = link['id'].replace('_', '$')
+                linkOptions.append([linkId, link['value']])
+                linkId = linkSelection2[linkIndex]['id'].replace('_', '$')
+                linkOptions.append([linkId, linkSelection2[linkIndex]['value']])
+                linkId = linkSelection3[linkIndex]['id'].replace('_', '$')
+                linkOptions.append([linkId, linkSelection3[linkIndex]['value']])
+                # go through both link lists in parallel
+                linkIndex = linkIndex + 1
 
-                headerFlag = True
+            paramDict = {key: str(value) for key, value in linkOptions}
+            paramDict = merge_two_dicts(paramDict, {key: str(value) for key, value in linkOptions2})
+            paramDict = merge_two_dicts(paramDict, {key: str(value) for key, value in linkOptions3})
 
-            # Write table data
-            if isinstance(ReportTable,bs4.element.Tag): # Check whether data table successfully found on the page. Some blocks have no data.
-                 # Store table for writing headers after loop
 
-                print ('Currently processing: ' + componentName + ' data for ' + s[0] + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' for financial year ' + finYearOptionVal)
+            for GP in GPSelection:
+                postParams = {
+                    '__EVENTARGUMENT': '',
+                    '__EVENTTARGET': GP['id'].replace('_','$').replace('lnk$','lnk_'),
+                    '__LASTFOCUS': '',
+                    eventValKey: eventVal,
+                    viewStateKey: viewStateVal,
 
-                lastReportTable = ReportTable
-                ReportRows = ReportTable.findAll('tr') # Bring entire table including headers because body isn't specified
-                if len(ReportRows) > 4:
-                    for tr in ReportRows[4:len(ReportRows)-1]: # Start from 4 (body of table) and total row (bottom of table) dropped
+                }
+                postParamsGP = merge_two_dicts(paramDict, postParams)
+
+                GPPage = parsePOSTResponse(url_SBM, postParamsGP)
+
+
+
+
+
+
+
+
+                # Process table data and output
+                ReportTable = componentPage.find('table')
+
+                # Write table headers
+                if not headerFlag:
+                    print ('Processing table headers...')
+                    headerRows = ReportTable.find('thead').findAll('tr')  # Only process table header data
+                    headerTableArray = []
+                    rowCount = 0
+
+                    headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
+
+                    for tr in headerRows[len(headerRows)-1:len(headerRows)]:  # last headeR row only
                         cellCount = 0
-                        tableRow = []
-                        cols = tr.findAll('td')
-                        # Write stored information in columns prior to data: Financial Year, State/Center, Statename
-                        ws.write(rowCount,cellCount,componentName)
-                        cellCount = cellCount + 1
-                        ws.write(rowCount,cellCount,finYearOptionVal)
-                        cellCount = cellCount + 1
-                        ws.write(rowCount,cellCount,s[0])
-                        cellCount = cellCount + 1
-                        for td in cols:
-                            # Tidy and format the cell content
+                        headerTableRow = []
+                        headerCols = tr.findAll('th')
+                        # Write state, district, and block headers
+                        ws.write(rowCount,cellCount,'Component name (State or Centre)',headerStyle)
+                        cellCount = cellCount+1
+                        ws.write(rowCount,cellCount,'Financial Year',headerStyle)
+                        cellCount = cellCount+1
+                        ws.write(rowCount,cellCount,'State Name',headerStyle)
+                        cellCount = cellCount+1
+                        for td in headerCols:
+                            # Tidy the cell content
                             cellText = td.text.replace('\*','')
                             cellText = cellText.strip()
-                            try:
-                                long(cellText)
-                                cellText = long(cellText)
-                            except:
-                                cellText = cellText
                             # Store the cell data
-                            tableRow.append(cellText)
-                            ws.write(rowCount,cellCount,cellText)
+                            headerTableRow.append(cellText)
+                            ws.write(rowCount,cellCount,cellText,headerStyle)
                             cellCount = cellCount+1
                         rowCount = rowCount + 1
 
-                else:
-                    sta = "no data in state"
-                stateCount = stateCount + 1
-            componentCount = componentCount + 1
+                    headerFlag = True
+
+                # Write table data
+                if isinstance(ReportTable,bs4.element.Tag): # Check whether data table successfully found on the page. Some blocks have no data.
+                     # Store table for writing headers after loop
+
+                    print ('Currently processing: ' + componentName + ' data for ' + s[0] + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' for financial year ' + finYearOptionVal)
+
+                    lastReportTable = ReportTable
+                    ReportRows = ReportTable.findAll('tr') # Bring entire table including headers because body isn't specified
+                    if len(ReportRows) > 4:
+                        for tr in ReportRows[4:len(ReportRows)-1]: # Start from 4 (body of table) and total row (bottom of table) dropped
+                            cellCount = 0
+                            tableRow = []
+                            cols = tr.findAll('td')
+                            # Write stored information in columns prior to data: Financial Year, State/Center, Statename
+                            ws.write(rowCount,cellCount,componentName)
+                            cellCount = cellCount + 1
+                            ws.write(rowCount,cellCount,finYearOptionVal)
+                            cellCount = cellCount + 1
+                            ws.write(rowCount,cellCount,s[0])
+                            cellCount = cellCount + 1
+                            for td in cols:
+                                # Tidy and format the cell content
+                                cellText = td.text.replace('\*','')
+                                cellText = cellText.strip()
+                                try:
+                                    long(cellText)
+                                    cellText = long(cellText)
+                                except:
+                                    cellText = cellText
+                                # Store the cell data
+                                tableRow.append(cellText)
+                                ws.write(rowCount,cellCount,cellText)
+                                cellCount = cellCount+1
+                            rowCount = rowCount + 1
+
+                    else:
+                        sta = "no data in state"
+                    stateCount = stateCount + 1
+                componentCount = componentCount + 1
 
 
     print ('Done processing.' + ' Script executed in ' + str(int(time.time()-startTime)) + ' seconds.')
