@@ -134,8 +134,6 @@ try: # Main exception handler
             eventVal = componentPage.find('input',{'id':'__EVENTVALIDATION'})['value']
             viewStateVal = componentPage.find('input',{'id':'__VIEWSTATE'})['value']
 
-            info = {'__EVENTARGUMENT' : '', '__EVENTTARGET' : 'ctl00$ContentPlaceHolder1$rptr_cen$ctl01$lnkbtn_stName', eventValKey:eventVal,
-                viewStateKey:viewStateVal}
 
             # The parameters are quite elaborate needing an entry per link so it's best to put them in a dict
             # Find Links
