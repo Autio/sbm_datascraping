@@ -269,13 +269,11 @@ try:  # Main exception handler
 
                             lastReportTable = reportTable
                             try:
-                                reportRows = reportTable.findAll(
-                                    'tr')  # Bring entire table including headers because body isn't specified
+                                reportRows = reportTable.findAll('tr')  # Bring entire table including headers because body isn't specified
                                 if not reportRows == None:
                                     if len(reportRows) > 4:
 
-                                        for tr in reportRows[2:len(
-                                                reportRows) - 1]:  # Start from 2 (body of table), bottom of table dropped
+                                        for tr in reportRows[2:len(reportRows) - 1]:  # Start from 2 (body of table), bottom of table dropped
                                             cellCount = 0
                                             tableRow = []
                                             cols = tr.findAll('td')
