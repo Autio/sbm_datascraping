@@ -90,10 +90,12 @@ try:  # Main exception handler
     # Global variable for ensuring headers get added only once
     headerFlag = False
 
+    eventVals = []
     print ("Starting data collection")
     # MAIN LOOP: loop through component values. Scrape link values from page
     for componentOptionVal in componentOptionVals[:1]:  # For testing, we can limit the states processed due to long runtime
         eventVal = initPage.find('input', {'id': '__EVENTVALIDATION'})['value']
+        eventVals.append(eventVal)
         viewStateVal = initPage.find('input', {'id': '__VIEWSTATE'})['value']
         postParams = {
             eventValKey: eventVal,
@@ -123,6 +125,7 @@ try:  # Main exception handler
         for state in stateOptionVals:
             districtCount = 0
             eventVal = componentPage.find('input', {'id': '__EVENTVALIDATION'})['value']
+            eventVals.append(eventVal)
             viewStateVal = componentPage.find('input', {'id': '__VIEWSTATE'})['value']
 
             postParams = {
@@ -139,6 +142,7 @@ try:  # Main exception handler
             statePage = parsePOSTResponse(url_SBM, postParams)
 
             eventVal = statePage.find('input', {'id': '__EVENTVALIDATION'})['value']
+            eventVals.append(eventVal)
             viewStateVal = statePage.find('input', {'id': '__VIEWSTATE'})['value']
             postParams = {
                 '__EVENTARGUMENT': '',
@@ -173,6 +177,8 @@ try:  # Main exception handler
 
             districtCount = 1
             for district in districtOptions:
+                eventVal = statePage.find('input', {'id': '__EVENTVALIDATION'})['value']
+                viewStateVal = statePage.find('input', {'id': '__VIEWSTATE'})['value']
                 postParams = {
                     '__EVENTARGUMENT': '',
                     targetKey: district[0].replace('_','$'),
@@ -209,9 +215,9 @@ try:  # Main exception handler
                     # go through both link lists in parallel
                     linkIndex = linkIndex + 1
 
-                paramDict = {key: str(value) for key, value in linkOptions}
-                paramDict = merge_two_dicts(paramDict, {key: str(value) for key, value in linkOptions2})
-                paramDict = merge_two_dicts(paramDict, {key: str(value) for key, value in linkOptions3})
+                paramDict3 = {key: str(value) for key, value in linkOptions}
+                paramDict3 = merge_two_dicts(paramDict3, {key: str(value) for key, value in linkOptions2})
+                paramDict3 = merge_two_dicts(paramDict3, {key: str(value) for key, value in linkOptions3})
                 blockCount = 0
                 if not headerFlag:
                     print ('Processing table headers...')
@@ -219,7 +225,7 @@ try:  # Main exception handler
                     blockCount = blockCount + 1
 
                     if block.text == '0':
-                        print ('Currently processing: ' + state[1] + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + ' (' + str(blockCount) + ' of ' + str(len(blockSelection))+ ') - no block data')
+                        print ('Currently processing: ' + state[1] + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + ' (' + str(blockCount) + ' of ' + str(len(blockSelection)) + ') - no block data')
                     # Only click into block if the total value of blocks is above 0, otherwise it will not go anywhere
                     else:
                         print ('Currently processing: ' + state[1] + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + str(blockCount) + ' of ' + str(len(blockSelection)))
@@ -231,7 +237,7 @@ try:  # Main exception handler
                             eventValKey: eventVal,
                             viewStateKey: viewStateVal,
                         }
-                        postParamsBlock = merge_two_dicts(paramDict, postParams)
+                        postParamsBlock = merge_two_dicts(paramDict3, postParams)
                         blockPage = parsePOSTResponse(url_SBM, postParamsBlock)
 
                         # Process table data and output
