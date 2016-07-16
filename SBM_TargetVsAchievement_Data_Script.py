@@ -74,7 +74,7 @@ try: # Main exception handler
     stateCount = 1
 
     # MAIN LOOP: loop through STATE values and scrape district and authentication values for each
-    for stateOptionVal in stateOptionVals: # For testing, we can limit the staes processed due to long runtime
+    for stateOptionVal in stateOptionVals: # For testing, we can limit the states processed due to long runtime
         postParams = {
             eventValKey:eventValVal,
             viewStateKey:viewStateVal,
@@ -157,12 +157,9 @@ try: # Main exception handler
                         tableRow = []
                         cols = tr.findAll('td')
                         # Write state, district, and block information
-                        ws.write(rowCount,cellCount,stateNameText)
-                        cellCount = cellCount+1
-                        ws.write(rowCount,cellCount,districtNameText)
-                        cellCount = cellCount+1
-                        ws.write(rowCount,cellCount,blockNameText)
-                        cellCount = cellCount+1
+                        tableRow.append(stateNameText)
+                        tableRow.append(districtNameText)
+                        tableRow.append(blockNameText)
                         for td in cols:
                             # Tidy and format the cell content
                             cellText = td.text.replace('\*','')
@@ -174,11 +171,14 @@ try: # Main exception handler
                                 cellText = cellText
                             # Store the cell data
                             tableRow.append(cellText)
-                            ws.write(rowCount,cellCount,cellText)
-                            cellCount = cellCount+1
-                        tableArray.append(tableRow)        
+
+                        tableArray.append(tableRow)
+                        # Try writing row at once
+                        ws.write_row(rowCount,0, tableRow)
                         rowCount = rowCount + 1
                         cellCount = 0
+                else:
+                    print ('No data for: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > block (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
                 blockCount = blockCount + 1
             districtCount = districtCount + 1
         stateCount = stateCount + 1
