@@ -150,28 +150,22 @@ try:  # Main exception handler
     stateOptions = []
     stateOptionVals = []
     stateSelection = allStatePage.findAll('a', {'id': re.compile('lnkGPRP$')})
+    stateNames = allStatePage.findAll('a', {'id': re.compile('lnkStateTotal')})
+    sCount = 0
     # Find all states and links to click through
     for s in stateSelection:
         stateOptionVal = s.text
         targetOptionVal = s['id']
-        stateOptionVals.append([stateOptionVal, targetOptionVal])
+        stateOptionVals.append([stateOptionVal, targetOptionVal, stateNames[sCount].text])
+        sCount = sCount + 1
 
     # Find all the parameters required
     linkOptions = []
-    #linkOptions2 = []
-    #linkOptions3 = []
     linkSelection = allStatePage.findAll('input', {'id': re.compile('hfStateID$')})
-    #linkSelection2 = districtPage.findAll('input', {'id': re.compile('hfdtcode$')})
-    #linkSelection3 = districtPage.findAll('input', {'id': re.compile('hfBlkcode$')})
     linkIndex = 0
     for link in linkSelection:
         linkId = link['id'].replace('_', '$')
         linkOptions.append([linkId, link['value']])
-        #linkId = linkSelection2[linkIndex]['id'].replace('_', '$')
-        #linkOptions.append([linkId, linkSelection2[linkIndex]['value']])
-        #linkId = linkSelection3[linkIndex]['id'].replace('_', '$')
-        #linkOptions.append([linkId, linkSelection3[linkIndex]['value']])
-        # go through both link lists in parallel
         linkIndex = linkIndex + 1
 
     # create dictionary from list
@@ -180,6 +174,7 @@ try:  # Main exception handler
     stateCount = 1
     # Should cycle through all the items in stateOptions
     for s in stateOptionVals:
+        # If state has no recorded values for GPs, then can't click to it
         if not s[0] == '0':
             stateLinkVal = s[1]
             stateLinkVal = stateLinkVal.replace('_', '$')  # Tweaking to get $ signs in the right place
@@ -212,17 +207,11 @@ try:  # Main exception handler
 
                 headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
 
-                for tr in headerRows[len(headerRows) - 1:len(headerRows)]:  # last headeR row only
+                for tr in headerRows:  # last headeR row only
                     cellCount = 0
                     headerTableRow = []
                     headerCols = tr.findAll('th')
-                    # Write state, district, and block headers
-                    ws.write(rowCount, cellCount, 'Component name (State or Centre)', headerStyle)
-                    cellCount = cellCount + 1
-                    ws.write(rowCount, cellCount, 'Financial Year', headerStyle)
-                    cellCount = cellCount + 1
-                    ws.write(rowCount, cellCount, 'State Name', headerStyle)
-                    cellCount = cellCount + 1
+                    # Write state, district, and block headerss
                     for td in headerCols:
                         # Tidy the cell content
                         cellText = td.text.replace('\*', '')
@@ -240,26 +229,20 @@ try:  # Main exception handler
                           bs4.element.Tag):  # Check whether data table successfully found on the page. Some blocks have no data.
                 # Store table for writing headers after loop
 
-                print('Currently processing: ' + componentName + ' data for ' + s[0] + ' (' + str(
+                print('Currently processing: ' + s[2] + ' (' + str(
                     stateCount) + ' of ' + str(
-                    len(stateOptionVals)) + ')' + ' for financial year ' + finYearOptionVal)
+                    len(stateOptionVals)) + ')')
 
                 lastReportTable = ReportTable
                 ReportRows = ReportTable.findAll(
                     'tr')  # Bring entire table including headers because body isn't specified
-                if len(ReportRows) > 4:
-                    for tr in ReportRows[4:len(
-                            ReportRows) - 1]:  # Start from 4 (body of table) and total row (bottom of table) dropped
+                if len(ReportRows) > 1:
+                    for tr in ReportRows[2:len(
+                            ReportRows) - 2]:  # Start from 2 (body of table) and total row (bottom of table) dropped
                         cellCount = 0
                         tableRow = []
                         cols = tr.findAll('td')
-                        # Write stored information in columns prior to data: Financial Year, State/Center, Statename
-                        ws.write(rowCount, cellCount, componentOptionVal)
-                        cellCount = cellCount + 1
-                        ws.write(rowCount, cellCount, finYearOptionVal)
-                        cellCount = cellCount + 1
-                        ws.write(rowCount, cellCount, s[0])
-                        cellCount = cellCount + 1
+
                         for td in cols:
                             # Tidy and format the cell content
                             cellText = td.text.replace('\*', '')
@@ -278,7 +261,13 @@ try:  # Main exception handler
                 else:
                     sta = "no data in state"
                 stateCount = stateCount + 1
-            componentCount = componentCount + 1
+
+        else:
+            print('Currently processing: ' + s[2] + ' (' + str(
+                    stateCount) + ' of ' + str(
+                    len(stateOptionVals)) + ') - No GP data available')
+
+            stateCount = stateCount + 1
 
     print('Done processing.' + ' Script executed in ' + str(int(time.time() - startTime)) + ' seconds.')
     # END MAIN LOOP
