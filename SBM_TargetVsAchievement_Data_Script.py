@@ -3,14 +3,15 @@ import ctypes # for popup window
 import sys # for exception information
 
 try: # Main exception handler
-    
+
     import requests # for HTTP requests
     from bs4 import BeautifulSoup # for HTML parsing
     import bs4 # for type checking
     import xlsxwriter # for exporting to Excel - need xlsx as over 200k rows of data
     import os # to find user's desktop path
     import time # for adding datestamp to file output
-
+    from Queue import Queue # for multithreading
+    from threading import Thread  # for multithreading
     # Timing the script
     startTime = time.time()
 
@@ -31,7 +32,7 @@ try: # Main exception handler
     targetVal = ''
 
     # __EVENTVALIDATION and __VIEWSTATE are dynamic authentication values which must be freshly updated when making a request. 
-    eventValKey = '__EVENTVALIDATION' 
+    eventValKey = '__EVENTVALIDATION'
     eventValVal = ''
     viewStateKey = '__VIEWSTATE'
     viewStateVal = ''
@@ -43,9 +44,64 @@ try: # Main exception handler
         if r.status_code == 200:
             responseHTML = r.content
             responseHTMLParsed = BeautifulSoup(responseHTML, 'html.parser')
-        return responseHTMLParsed	
+        return responseHTMLParsed
 
-    # Load the default page and scrape the state and authentication values   
+    # Function to read the data in an individual block report
+    def readBlockReport(URL, parameters=''):
+        page = parsePOSTResponse(URL, parameters)
+        # Process table data and output
+        blockReportTable = page.find('table')
+
+        if isinstance(blockReportTable,bs4.element.Tag): # Check whether data table successfully found on the page. Some blocks have no data.
+
+            # Store table for writing headers after loop
+            lastBlockReportTable = blockReportTable
+            # Store state, district, and block information
+            stateNameText = blockReportTable.find('span',{'id':'ctl00_ContentPlaceHolder1_Rpt_data_ctl00_lblstatename'}).text
+            stateNameText = stateNameText.replace('State Name:-','');
+            stateNameText = stateNameText.strip();
+            districtNameText = blockReportTable.find('span',{'id':'ctl00_ContentPlaceHolder1_Rpt_data_ctl00_lbldtname'}).text
+            districtNameText = districtNameText.replace('District Name:-','');
+            districtNameText = districtNameText.strip();
+            blockNameText = blockReportTable.find('span',{'id':'ctl00_ContentPlaceHolder1_Rpt_data_ctl00_lblblname'}).text
+            blockNameText = blockNameText.replace('Block Name:-','');
+            blockNameText = blockNameText.strip();
+
+            # Loop through rows and write data into array to be returned
+            print ('Currently processing: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + blockNameText + ' (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
+
+            blockReportRows = blockReportTable.find('tbody').findAll('tr') # Only process table body data
+            tableArray = []
+            for tr in blockReportRows[0:len(blockReportRows)-1]: # Total row (bottom of table) dropped
+                tableRow = []
+                cols = tr.findAll('td')
+                # Write state, district, and block information
+                tableRow.append(stateNameText)
+                tableRow.append(districtNameText)
+                tableRow.append(blockNameText)
+                for td in cols:
+                    # Tidy and format the cell content
+                    cellText = td.text.replace('\*','')
+                    cellText = cellText.strip()
+                    try:
+                        int(cellText)
+                        cellText = int(cellText)
+                    except:
+                        cellText = cellText
+                    # Store the cell data
+                    tableRow.append(cellText)
+
+                # TableArray.append(tableRow)
+                # Try writing row at once
+                rowCount = rowCount + 1
+                tableArray.append(tableRow)
+            return tableArray
+        else:
+            a=2
+       #     print ('No data for: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > block (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
+
+
+    # Load the default page and scrape the state and authentication values
     initPage = parsePOSTResponse(url_SBM_TargetVsAchievement)
     eventValVal = initPage.find('input',{'id':'__EVENTVALIDATION'})['value']
     viewStateVal = initPage.find('input',{'id':'__VIEWSTATE'})['value']
@@ -63,7 +119,7 @@ try: # Main exception handler
     desktopFile = os.path.expanduser('~/Desktop/SBM_TargetVsAchievement_' + todaysDate + '.xlsx')
     wb = xlsxwriter.Workbook(desktopFile)
     ws = wb.add_worksheet('SBM Test')
-    ws.set_column('A:AZ', 22) 
+    ws.set_column('A:AZ', 22)
     rowCount = 1 # Adjust one row for printing table headers after main loop
     cellCount = 0
 
@@ -74,7 +130,7 @@ try: # Main exception handler
     stateCount = 1
 
     # MAIN LOOP: loop through STATE values and scrape district and authentication values for each
-    for stateOptionVal in stateOptionVals: # For testing, we can limit the states processed due to long runtime
+    for stateOptionVal in stateOptionVals[:1]: # For testing, we can limit the states processed due to long runtime
         postParams = {
             eventValKey:eventValVal,
             viewStateKey:viewStateVal,
@@ -96,7 +152,7 @@ try: # Main exception handler
                 districtOptionVals.append(districtOptionVal)
         # Loop through the DISTRICT values and scrape block and authentication values for each
         districtCount = 1
-        for districtOptionVal in districtOptionVals:        
+        for districtOptionVal in districtOptionVals:
             state_postParams = {
                 eventValKey:state_eventValVal,
                 viewStateKey:state_viewStateVal,
@@ -128,57 +184,15 @@ try: # Main exception handler
                     blockKey:blockOptionVal,
                     submitKey:submitVal
                 }
-                blockReport = parsePOSTResponse(url_SBM_TargetVsAchievement, block_postParams)
 
-                # Process table data and output 
-                blockReportTable = blockReport.find('table')
-                if isinstance(blockReportTable,bs4.element.Tag): # Check whether data table successfully found on the page. Some blocks have no data.
+                # Multithreading: Try and call all of the block report tables at once
+                tableRow = readBlockReport(url_SBM_TargetVsAchievement, block_postParams)
 
-                    # Store table for writing headers after loop
-                    lastBlockReportTable = blockReportTable 
+                # Try writing row at once
+                ws.write_row(rowCount,0, tableRow)
+                rowCount = rowCount + 1
+                cellCount = 0
 
-                    # Store state, district, and block information
-                    stateNameText = blockReportTable.find('span',{'id':'ctl00_ContentPlaceHolder1_Rpt_data_ctl00_lblstatename'}).text
-                    stateNameText = stateNameText.replace('State Name:-','');
-                    stateNameText = stateNameText.strip();
-                    districtNameText = blockReportTable.find('span',{'id':'ctl00_ContentPlaceHolder1_Rpt_data_ctl00_lbldtname'}).text
-                    districtNameText = districtNameText.replace('District Name:-','');
-                    districtNameText = districtNameText.strip();
-                    blockNameText = blockReportTable.find('span',{'id':'ctl00_ContentPlaceHolder1_Rpt_data_ctl00_lblblname'}).text
-                    blockNameText = blockNameText.replace('Block Name:-','');
-                    blockNameText = blockNameText.strip();
-
-                    print ('Currently processing: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + blockNameText + ' (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
-
-                    # Loop through rows and write data
-                    blockReportRows = blockReportTable.find('tbody').findAll('tr') # Only process table body data
-                    tableArray = []                
-                    for tr in blockReportRows[0:len(blockReportRows)-1]: # Total row (bottom of table) dropped
-                        tableRow = []
-                        cols = tr.findAll('td')
-                        # Write state, district, and block information
-                        tableRow.append(stateNameText)
-                        tableRow.append(districtNameText)
-                        tableRow.append(blockNameText)
-                        for td in cols:
-                            # Tidy and format the cell content
-                            cellText = td.text.replace('\*','')
-                            cellText = cellText.strip()
-                            try:
-                                int(cellText)
-                                cellText = int(cellText)
-                            except:
-                                cellText = cellText
-                            # Store the cell data
-                            tableRow.append(cellText)
-
-                        tableArray.append(tableRow)
-                        # Try writing row at once
-                        ws.write_row(rowCount,0, tableRow)
-                        rowCount = rowCount + 1
-                        cellCount = 0
-                else:
-                    print ('No data for: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > block (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
                 blockCount = blockCount + 1
             districtCount = districtCount + 1
         stateCount = stateCount + 1
@@ -208,10 +222,10 @@ try: # Main exception handler
             headerTableRow.append(cellText)
             ws.write(rowCount,cellCount,cellText,headerStyle)
             cellCount = cellCount+1
-        headerTableArray.append(tableRow)        
+        headerTableArray.append(tableRow)
         rowCount = rowCount + 1
         cellCount = 0
-                    
+
     print ('Done processing.' + ' Script executed in ' + str(int(time.time()-startTime)) + ' seconds.')
     # END MAIN LOOP
 
