@@ -10,8 +10,8 @@ try: # Main exception handler
     import xlsxwriter # for exporting to Excel - need xlsx as over 200k rows of data
     import os # to find user's desktop path
     import time # for adding datestamp to file output
-    from Queue import Queue # for multithreading
-    from threading import Thread  # for multithreading
+    import Queue # for multithreading
+    import threading # for multithreading
     # Timing the script
     startTime = time.time()
 
@@ -37,6 +37,9 @@ try: # Main exception handler
     viewStateKey = '__VIEWSTATE'
     viewStateVal = ''
 
+    # Queue for multithreading
+    myQueue = Queue.Queue()
+
     # Function to return HTML parsed with BeautifulSoup from a POST request URL and parameters.
     def parsePOSTResponse(URL, parameters=''):
         responseHTMLParsed = ''
@@ -45,6 +48,17 @@ try: # Main exception handler
             responseHTML = r.content
             responseHTMLParsed = BeautifulSoup(responseHTML, 'html.parser')
         return responseHTMLParsed
+
+    # Threading
+    lines = []
+    def threader():
+        while True:
+            try:
+                params = myQueue.get()
+                readBlockReport(url_SBM_TargetVsAchievement, params)
+                myQueue.task_done()
+            except:
+                print ("Thread error")
 
     # Function to read the data in an individual block report
     def readBlockReport(URL, parameters=''):
@@ -99,7 +113,6 @@ try: # Main exception handler
         else:
             a=2
        #     print ('No data for: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > block (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
-
 
     # Load the default page and scrape the state and authentication values
     initPage = parsePOSTResponse(url_SBM_TargetVsAchievement)
@@ -175,6 +188,7 @@ try: # Main exception handler
 
             # Loop through the BLOCK values and request the report for each
             blockCount = 1
+            block_postParamsArray = []
             for blockOptionVal in blockOptionVals:
                 block_postParams = {
                     eventValKey:district_eventValVal,
@@ -185,15 +199,25 @@ try: # Main exception handler
                     submitKey:submitVal
                 }
 
-                # Multithreading: Try and call all of the block report tables at once
-                tableRow = readBlockReport(url_SBM_TargetVsAchievement, block_postParams)
+                myQueue.put(block_postParams)
 
-                # Try writing row at once
-                ws.write_row(rowCount,0, tableRow)
-                rowCount = rowCount + 1
-                cellCount = 0
+            # Multithreading: Try and call all of the block report tables at once
+            for x in range(len(blockOptionVals)):
+                t = threading.Thread(target=threader)
+                t.daemon = True
+                t.start()
 
-                blockCount = blockCount + 1
+            myQueue.join()
+            tableRow = readBlockReport(url_SBM_TargetVsAchievement, block_postParams)
+
+            # Try writing row at once
+            #ws.write_row(rowCount,0, tableRow)
+            #rowCount = rowCount + 1
+            #cellCount = 0
+
+            blockCount = blockCount + 1
+
+            # Wait for multithreading to finish
             districtCount = districtCount + 1
         stateCount = stateCount + 1
 
