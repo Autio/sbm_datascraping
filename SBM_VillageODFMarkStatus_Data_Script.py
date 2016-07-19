@@ -283,13 +283,6 @@ try:  # Main exception handler
                                             cellCount = 0
                                             tableRow = []
                                             cols = tr.findAll('td')
-                                            # Write stored information in columns prior to data: Financial Year, State/Center, Statename
-                                            # ws.write(rowCount,cellCount,componentName)
-                                            # cellCount = cellCount + 1
-                                            # ws.write(rowCount,cellCount,finYearOptionVal)
-                                            # cellCount = cellCount + 1
-                                            # ws.write(rowCount,cellCount,s[0])
-                                            # cellCount = cellCount + 1
                                             for td in cols:
                                                 # Tidy and format the cell content
                                                 cellText = td.text.replace('\*', '')

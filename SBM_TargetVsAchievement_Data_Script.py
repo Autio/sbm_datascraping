@@ -37,6 +37,8 @@ try: # Main exception handler
     viewStateKey = '__VIEWSTATE'
     viewStateVal = ''
 
+
+
     # Queue for multithreading
     myQueue = Queue.Queue()
 
@@ -50,17 +52,31 @@ try: # Main exception handler
         return responseHTMLParsed
 
     # Threading
-    lines = []
-    def threader():
-        while True:
-            try:
-                params = myQueue.get()
-                readBlockReport(url_SBM_TargetVsAchievement, params)
-                myQueue.task_done()
-            except:
-                print ("Thread error")
+    def threaded(f, daemon=False):
+
+        def wrapped_f(q, *args, **kwargs):
+            '''this function calls the decorated function and puts the
+            result in a queue'''
+            ret = f(*args, **kwargs)
+            q.put(ret)
+
+        def wrap(*args, **kwargs):
+            '''this is the function returned from the decorator. It fires off
+            wrapped_f in a new thread and returns the thread object with
+            the result queue attached'''
+
+            q = Queue.Queue()
+
+            t = threading.Thread(target=wrapped_f, args=(q,)+args, kwargs=kwargs)
+            t.daemon = daemon
+            t.start()
+            t.result_queue = q
+            return t
+
+        return wrap
 
     # Function to read the data in an individual block report
+    @threaded
     def readBlockReport(URL, parameters=''):
         page = parsePOSTResponse(URL, parameters)
         # Process table data and output
@@ -107,11 +123,11 @@ try: # Main exception handler
 
                 # TableArray.append(tableRow)
                 # Try writing row at once
-                rowCount = rowCount + 1
+                #rowCount = rowCount + 1
                 tableArray.append(tableRow)
             return tableArray
         else:
-            a=2
+            return -1
        #     print ('No data for: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > block (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
 
     # Load the default page and scrape the state and authentication values
@@ -139,11 +155,15 @@ try: # Main exception handler
     # Global variable to store final table data
     lastBlockReportTable = ''
 
-    # Global variable for keeping track of the state
+    # Global variabless for keeping track of the state and GP
     stateCount = 1
+    GPCount = 0
+
+    # Data to be written into the file at the end of the loop
+    fileOutput = []
 
     # MAIN LOOP: loop through STATE values and scrape district and authentication values for each
-    for stateOptionVal in stateOptionVals[:1]: # For testing, we can limit the states processed due to long runtime
+    for stateOptionVal in stateOptionVals[:2]: # For testing, we can limit the states processed due to long runtime
         postParams = {
             eventValKey:eventValVal,
             viewStateKey:viewStateVal,
@@ -188,7 +208,8 @@ try: # Main exception handler
 
             # Loop through the BLOCK values and request the report for each
             blockCount = 1
-            block_postParamsArray = []
+            blockResultsArray = []
+            ba = []
             for blockOptionVal in blockOptionVals:
                 block_postParams = {
                     eventValKey:district_eventValVal,
@@ -199,21 +220,17 @@ try: # Main exception handler
                     submitKey:submitVal
                 }
 
-                myQueue.put(block_postParams)
+                # Multithreading: Try and call all of the block report tables at once
+                ba.append(readBlockReport(url_SBM_TargetVsAchievement, block_postParams))
 
-            # Multithreading: Try and call all of the block report tables at once
-            for x in range(len(blockOptionVals)):
-                t = threading.Thread(target=threader)
-                t.daemon = True
-                t.start()
+                # this blocks, waiting for the result
+            result = []
+            for a in ba:
+                result.append(a.result_queue.get())
+            blockResultsArray.append(result)
 
-            myQueue.join()
-            tableRow = readBlockReport(url_SBM_TargetVsAchievement, block_postParams)
 
-            # Try writing row at once
-            #ws.write_row(rowCount,0, tableRow)
-            #rowCount = rowCount + 1
-            #cellCount = 0
+            fileOutput.append(blockResultsArray)
 
             blockCount = blockCount + 1
 
@@ -221,37 +238,46 @@ try: # Main exception handler
             districtCount = districtCount + 1
         stateCount = stateCount + 1
 
+
+
     # Write table headers based on final report
-    print ('Processing table headers...')
-    blockReportHeaderRows = lastBlockReportTable.find('thead').findAll('tr') # Only process table header data
-    headerTableArray = []
-    rowCount = 0
-    cellCount = 0
-    headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
-    for tr in blockReportHeaderRows[len(blockReportHeaderRows)-2:len(blockReportHeaderRows)-1]: # State, district, and block (bottom of table) + other headers dropped
-        headerTableRow = []
-        headerCols = tr.findAll('th')
-        # Write state, district, and block headers
-        ws.write(rowCount,cellCount,'State Name',headerStyle)
-        cellCount = cellCount+1
-        ws.write(rowCount,cellCount,'District Name',headerStyle)
-        cellCount = cellCount+1
-        ws.write(rowCount,cellCount,'Block Name',headerStyle)
-        cellCount = cellCount+1
-        for td in headerCols:
-            # Tidy the cell content
-            cellText = td.text.replace('\*','')
-            cellText = cellText.strip()
-            # Store the cell data
-            headerTableRow.append(cellText)
-            ws.write(rowCount,cellCount,cellText,headerStyle)
-            cellCount = cellCount+1
-        headerTableArray.append(tableRow)
-        rowCount = rowCount + 1
-        cellCount = 0
+    # print ('Processing table headers...')
+    # blockReportHeaderRows = lastBlockReportTable.find('thead').findAll('tr') # Only process table header data
+    # headerTableArray = []
+    # rowCount = 0
+    # cellCount = 0
+    # headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
+    # for tr in blockReportHeaderRows[len(blockReportHeaderRows)-2:len(blockReportHeaderRows)-1]: # State, district, and block (bottom of table) + other headers dropped
+    #     headerTableRow = []
+    #     headerCols = tr.findAll('th')
+    #     # Write state, district, and block headers
+    #     ws.write(rowCount,cellCount,'State Name',headerStyle)
+    #     cellCount = cellCount+1
+    #     ws.write(rowCount,cellCount,'District Name',headerStyle)
+    #     cellCount = cellCount+1
+    #     ws.write(rowCount,cellCount,'Block Name',headerStyle)
+    #     cellCount = cellCount+1
+    #     for td in headerCols:
+    #         # Tidy the cell content
+    #         cellText = td.text.replace('\*','')
+    #         cellText = cellText.strip()
+    #         # Store the cell data
+    #         headerTableRow.append(cellText)
+    #         ws.write(rowCount,cellCount,cellText,headerStyle)
+    #         cellCount = cellCount+1
+    #     #headerTableArray.append(tableRow)
+    #     rowCount = rowCount + 1
+    #     cellCount = 0
 
     print ('Done processing.' + ' Script executed in ' + str(int(time.time()-startTime)) + ' seconds.')
     # END MAIN LOOP
+
+    # Write all data into the file
+    r = 0
+    for b in blockResultsArray:
+        for c in b:
+            ws.write_row(r, 0, c)
+            r = r + 1
 
     # Finally, save the workbook
     wb.close()
