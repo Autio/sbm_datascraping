@@ -157,13 +157,14 @@ try: # Main exception handler
 
     # Global variabless for keeping track of the state and GP
     stateCount = 1
+    blockCount = 1
     GPCount = 0
 
     # Data to be written into the file at the end of the loop
     fileOutput = []
 
     # MAIN LOOP: loop through STATE values and scrape district and authentication values for each
-    for stateOptionVal in stateOptionVals[:1]: # For testing, we can limit the states processed due to long runtime
+    for stateOptionVal in stateOptionVals[:2]: # For testing, we can limit the states processed due to long runtime
         postParams = {
             eventValKey:eventValVal,
             viewStateKey:viewStateVal,
@@ -179,6 +180,7 @@ try: # Main exception handler
         districtOptionVals = []
         districtSelection = statePage.find('select',{'id':'ctl00_ContentPlaceHolder1_ddlDistrict'})
         districtOptions = districtSelection.findAll('option',{'selected':''})
+        allBlocks = []
         for districtOption in districtOptions:
             if 'All District' not in districtOption.text and 'STATE HEADQUARTER' not in districtOption.text: # We do not want the top level data for the state or state headquarter data
                 districtOptionVal = districtOption['value']
@@ -186,6 +188,7 @@ try: # Main exception handler
         # Loop through the DISTRICT values and scrape block and authentication values for each
         districtCount = 1
         blockResultsArray = []
+
         for districtOptionVal in districtOptionVals:
             state_postParams = {
                 eventValKey:state_eventValVal,
@@ -208,9 +211,9 @@ try: # Main exception handler
                     blockOptionVals.append(blockOptionVal)
 
             # Loop through the BLOCK values and request the report for each
-            blockCount = 1
 
-            allBlocks = []
+
+
             for blockOptionVal in blockOptionVals:
                 block_postParams = {
                     eventValKey:district_eventValVal,
@@ -225,21 +228,22 @@ try: # Main exception handler
                 allBlocks.append(readBlockReport(url_SBM_TargetVsAchievement, blockCount, block_postParams))
                 blockCount = blockCount + 1
 
-            result = []
-            for block in allBlocks:
-                GPs = block.result_queue.get()
-                if not GPs == -1:
-                    result.append(GPs)
-                    for r in range(len(GPs)):
-                        print ('Currently processing: ' + GPs[r][0] + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + GPs[r][1] + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + GPs[r][2] + ' (' + str(r + 1) + ' of ' + str(len(GPs)) + ')')
+        blockCount = 1
+        result = []
+        for block in allBlocks:
+            GPs = block.result_queue.get()
+            if not GPs == -1:
+                result.append(GPs)
+                for r in range(len(GPs)):
+                    print ('Currently processing: ' + GPs[r][0] + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + GPs[r][1] + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + GPs[r][2] + ' (' + str(r + 1) + ' of ' + str(len(GPs)) + ')' + ' > ' + str(GPs[r][4]))
 
-            blockResultsArray.append(result)
+        blockResultsArray.append(result)
 
-            fileOutput.append(blockResultsArray)
+        fileOutput.append(blockResultsArray)
 
-            # Wait for multithreading to finish
-            districtCount = districtCount + 1
-        stateCount = stateCount + 1
+        # Wait for multithreading to finish
+        districtCount = districtCount + 1
+    stateCount = stateCount + 1
 
 
 
