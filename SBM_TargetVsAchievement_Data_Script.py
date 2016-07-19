@@ -77,7 +77,7 @@ try: # Main exception handler
 
     # Function to read the data in an individual block report
     @threaded
-    def readBlockReport(URL, parameters=''):
+    def readBlockReport(URL, blockIndex, parameters='',):
         page = parsePOSTResponse(URL, parameters)
         # Process table data and output
         blockReportTable = page.find('table')
@@ -98,7 +98,7 @@ try: # Main exception handler
             blockNameText = blockNameText.strip();
 
             # Loop through rows and write data into array to be returned
-            print ('Currently processing: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + blockNameText + ' (' + str(blockCount) + ' of ' + str(len(blockOptionVals)) + ')')
+            #print ('Currently processing: ' + stateNameText + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + districtNameText + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + blockNameText + ' (' + str(blockIndex) + ' of ' + str(len(blockOptionVals)) + ')')
 
             blockReportRows = blockReportTable.find('tbody').findAll('tr') # Only process table body data
             tableArray = []
@@ -163,7 +163,7 @@ try: # Main exception handler
     fileOutput = []
 
     # MAIN LOOP: loop through STATE values and scrape district and authentication values for each
-    for stateOptionVal in stateOptionVals[:2]: # For testing, we can limit the states processed due to long runtime
+    for stateOptionVal in stateOptionVals[:1]: # For testing, we can limit the states processed due to long runtime
         postParams = {
             eventValKey:eventValVal,
             viewStateKey:viewStateVal,
@@ -185,6 +185,7 @@ try: # Main exception handler
                 districtOptionVals.append(districtOptionVal)
         # Loop through the DISTRICT values and scrape block and authentication values for each
         districtCount = 1
+        blockResultsArray = []
         for districtOptionVal in districtOptionVals:
             state_postParams = {
                 eventValKey:state_eventValVal,
@@ -208,8 +209,8 @@ try: # Main exception handler
 
             # Loop through the BLOCK values and request the report for each
             blockCount = 1
-            blockResultsArray = []
-            ba = []
+
+            allBlocks = []
             for blockOptionVal in blockOptionVals:
                 block_postParams = {
                     eventValKey:district_eventValVal,
@@ -220,19 +221,21 @@ try: # Main exception handler
                     submitKey:submitVal
                 }
 
-                # Multithreading: Try and call all of the block report tables at once
-                ba.append(readBlockReport(url_SBM_TargetVsAchievement, block_postParams))
+                # Multithreading: Try and call all of the block report tables ofr a block in parallel
+                allBlocks.append(readBlockReport(url_SBM_TargetVsAchievement, blockCount, block_postParams))
+                blockCount = blockCount + 1
 
-                # this blocks, waiting for the result
             result = []
-            for a in ba:
-                result.append(a.result_queue.get())
+            for block in allBlocks:
+                GPs = block.result_queue.get()
+                if not GPs == -1:
+                    result.append(GPs)
+                    for r in range(len(GPs)):
+                        print ('Currently processing: ' + GPs[r][0] + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' > ' + GPs[r][1] + ' (' + str(districtCount) + ' of ' + str(len(districtOptionVals)) + ')' + ' > ' + GPs[r][2] + ' (' + str(r + 1) + ' of ' + str(len(GPs)) + ')')
+
             blockResultsArray.append(result)
 
-
             fileOutput.append(blockResultsArray)
-
-            blockCount = blockCount + 1
 
             # Wait for multithreading to finish
             districtCount = districtCount + 1
@@ -276,8 +279,9 @@ try: # Main exception handler
     r = 0
     for b in blockResultsArray:
         for c in b:
-            ws.write_row(r, 0, c)
-            r = r + 1
+            for d in c:
+                ws.write_row(r, 0, d)
+                r = r + 1
 
     # Finally, save the workbook
     wb.close()
