@@ -45,11 +45,16 @@ try: # Main exception handler
     # Function to return HTML parsed with BeautifulSoup from a POST request URL and parameters.
     def parsePOSTResponse(URL, parameters=''):
         responseHTMLParsed = ''
-        r = requests.post(URL, data=parameters)
-        if r.status_code == 200:
-            responseHTML = r.content
-            responseHTMLParsed = BeautifulSoup(responseHTML, 'html.parser')
-        return responseHTMLParsed
+        attempts = 20
+        for i in range(attempts):
+            r = requests.post(URL, data=parameters)
+            if r.status_code == 200:
+                responseHTML = r.content
+                responseHTMLParsed = BeautifulSoup(responseHTML, 'html.parser')
+            if not responseHTMLParsed == '':
+                return responseHTMLParsed
+            else:
+                print ("    Could not load page - attempt %s out of %s" % (i+1, attempts))
 
     # Given two dicts, merge them into a new dict as a shallow copy.
     def merge_two_dicts(x, y):

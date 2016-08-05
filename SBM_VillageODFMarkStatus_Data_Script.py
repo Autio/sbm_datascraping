@@ -22,6 +22,10 @@ try:  # Main exception handler
     # Configuration of request variables
     url_SBM = 'http://sbm.gov.in/sbmreport/Report/Physical/SBM_VillageODFMarkStatus.aspx'
 
+    # Output held here
+    outputArray = []
+
+
     # For finance progress
     componentKey = 'ctl00$ContentPlaceHolder1$ddlComponent'
     componentVal = ''
@@ -42,13 +46,18 @@ try:  # Main exception handler
     stateKey = 'ctl00$ContentPlaceHolder1$ddlState'
 
     # Function to return HTML parsed with BeautifulSoup from a POST request URL and parameters.
-    def parsePOSTResponse(URL, parameters=''):
+    def parsePOSTResponse(URL, parameters, pagetype):
         responseHTMLParsed = ''
-        r = requests.post(URL, data=parameters)
-        if r.status_code == 200:
-            responseHTML = r.content
-            responseHTMLParsed = BeautifulSoup(responseHTML, 'html.parser')
-        return responseHTMLParsed
+        attempts = 20
+        for i in range(attempts):
+            r = requests.post(URL, data=parameters)
+            if r.status_code == 200:
+                responseHTML = r.content
+                responseHTMLParsed = BeautifulSoup(responseHTML, 'html.parser')
+            if not responseHTMLParsed == '':
+                return responseHTMLParsed
+            else:
+                print ("    Could not load %s page - attempt %s out of %s" % (pagetype, i+1, attempts))
 
     # Given two dicts, merge them into a new dict as a shallow copy.
     def merge_two_dicts(x, y):
@@ -57,7 +66,7 @@ try:  # Main exception handler
         return z
 
     # Load the default page and scrape the component, finance year and authentication values
-    initPage = parsePOSTResponse(url_SBM)
+    initPage = parsePOSTResponse(url_SBM, "", "initial")
     eventVal = initPage.find('input', {'id': '__EVENTVALIDATION'})['value']
     viewStateVal = initPage.find('input', {'id': '__VIEWSTATE'})['value']
     componentOptions = []
@@ -106,7 +115,7 @@ try:  # Main exception handler
             # submitKey: submitVal
         }
 
-        componentPage = parsePOSTResponse(url_SBM, postParams)
+        componentPage = parsePOSTResponse(url_SBM, postParams, "component")
 
         # Now the states become visible, so read them in
         stateOptions = []
@@ -139,7 +148,7 @@ try:  # Main exception handler
                 stateKey: state[0]
             }
 
-            statePage = parsePOSTResponse(url_SBM, postParams)
+            statePage = parsePOSTResponse(url_SBM, postParams, "state")
 
             eventVal = statePage.find('input', {'id': '__EVENTVALIDATION'})['value']
             eventVals.append(eventVal)
@@ -187,7 +196,7 @@ try:  # Main exception handler
                 }
                 postParams = merge_two_dicts(paramDict, postParams)
 
-                districtPage = parsePOSTResponse(url_SBM, postParams)
+                districtPage = parsePOSTResponse(url_SBM, postParams, "district")
 
                 # Then process the numbers next which are the link to the GP level
                 # Also goes down to family head name...
@@ -225,10 +234,12 @@ try:  # Main exception handler
                     blockCount = blockCount + 1
 
                     if block.text == '0':
-                        print ('Currently processing: ' + state[1] + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + ' (' + str(blockCount) + ' of ' + str(len(blockSelection)) + ') - no block data')
+                        print ('Currently processing: ' + state[1].upper() + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1] + ' (' + str(blockCount) + ' of ' + str(len(blockSelection)) + ') - no block data')
+
+
                     # Only click into block if the total value of blocks is above 0, otherwise it will not go anywhere
                     else:
-                        print ('Currently processing: ' + state[1] + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + str(blockCount) + ' of ' + str(len(blockSelection)))
+                        print ('Currently processing: ' + state[1].upper() + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1] + ' (' + str(blockCount) + ' of ' + str(len(blockSelection))+')')
 
                         postParams = {
                             argumentKey: argumentVal,
@@ -238,7 +249,7 @@ try:  # Main exception handler
                             viewStateKey: viewStateVal,
                         }
                         postParamsBlock = merge_two_dicts(paramDict3, postParams)
-                        blockPage = parsePOSTResponse(url_SBM, postParamsBlock)
+                        blockPage = parsePOSTResponse(url_SBM, postParamsBlock, "block")
 
                         # Process table data and output
                         reportTable = blockPage.find('table')
