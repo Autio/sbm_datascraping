@@ -131,7 +131,7 @@ try:  # Main exception handler
         stateCount = 1
         # Now cycle through the states and use the stateOptionVal to select the state
         state = []
-        for state in stateOptionVals[:1]:
+        for state in stateOptionVals:
             districtCount = 0
             eventVal = componentPage.find('input', {'id': '__EVENTVALIDATION'})['value']
             eventVals.append(eventVal)
@@ -242,7 +242,7 @@ try:  # Main exception handler
                         tableRow.append('')
                         tableRow.append(state[1])
                         tableRow.append(district[1])
-                        tableRow.append('Block')
+                        tableRow.append(blockName.strip())
                         tableRow.append('GP')
                         tableRow.append('No data')
                         tableRow.append('No data')

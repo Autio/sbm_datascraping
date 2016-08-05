@@ -21,6 +21,8 @@ try:  # Main exception handler
     # Configuration of request variables
     url_SBM = 'http://sbm.gov.in/sbmreport/Report/Panchayat/SBM_SLWMExpenditureAchievement.aspx'
 
+    outputArray = []
+
     # Key / value pairs to pass to ASP.net POST parameters
     stateKey = 'ctl00$ContentPlaceHolder1$ddlState'
     stateVal = ''
@@ -48,7 +50,7 @@ try:  # Main exception handler
 
 
     # Function to return HTML parsed with BeautifulSoup from a POST request URL and parameters.
-    def parsePOSTResponse(URL, parameters=''):
+    def parsePOSTResponse(URL, parameters='', pagetype = ''):
         responseHTMLParsed = ''
         attempts = 20
         for i in range(attempts):
@@ -59,7 +61,7 @@ try:  # Main exception handler
             if not responseHTMLParsed == '':
                 return responseHTMLParsed
             else:
-                print ("    Could not load page - attempt %s out of %s" % (i+1, attempts))
+                print ("    Could not load #s page - attempt %s out of %s" % (pagetype, i+1, attempts))
 
 
     # Given two dicts, merge them into a new dict as a shallow copy.
@@ -146,7 +148,7 @@ try:  # Main exception handler
         submitKey: submitVal
     }
 
-    allStatePage = parsePOSTResponse(url_SBM, postParams)
+    allStatePage = parsePOSTResponse(url_SBM, postParams, 'state')
 
     # Find GPs
     # By clicking on the Total No. of GP value we get tables at the GP level, if that value isn't 0
@@ -198,7 +200,7 @@ try:  # Main exception handler
 
             postParams = merge_two_dicts(paramDictionary, postParams)
 
-            GPPage = parsePOSTResponse(url_SBM, postParams)
+            GPPage = parsePOSTResponse(url_SBM, postParams, 'GP')
 
             # Process table data and output
             ReportTable = GPPage.find('table')
@@ -223,7 +225,6 @@ try:  # Main exception handler
                         cellText = cellText.strip()
                         # Store the cell data
                         headerTableRow.append(cellText)
-                        ws.write(rowCount, cellCount, cellText, headerStyle)
                         cellCount = cellCount + 1
                     rowCount = rowCount + 1
 
