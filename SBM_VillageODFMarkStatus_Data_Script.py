@@ -131,7 +131,7 @@ try:  # Main exception handler
         stateCount = 1
         # Now cycle through the states and use the stateOptionVal to select the state
         state = []
-        for state in stateOptionVals:
+        for state in stateOptionVals[:1]:
             districtCount = 0
             eventVal = componentPage.find('input', {'id': '__EVENTVALIDATION'})['value']
             eventVals.append(eventVal)
@@ -234,9 +234,20 @@ try:  # Main exception handler
                     blockCount = blockCount + 1
 
                     if block.text == '0':
-                        print ('Currently processing: ' + state[1].upper() + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1] + ' (' + str(blockCount) + ' of ' + str(len(blockSelection)) + ') - no block data')
+                        print ('Currently processing: ' + state[1].upper() + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1] + ' (' + str(blockCount) + ' of ' + str(len(blockSelection)) + ') - no GP data')
+                        tableRow = []
+                        tableRow.append('')
+                        tableRow.append(state[1])
+                        tableRow.append(district[1])
+                        tableRow.append('Block')
+                        tableRow.append('GP')
+                        tableRow.append('No data')
+                        tableRow.append('No data')
+                        for i in range(5):
+                            tableRow.append('0')
+                        tableRow.append('No data')
 
-
+                        outputArray.append(tableRow)
                     # Only click into block if the total value of blocks is above 0, otherwise it will not go anywhere
                     else:
                         print ('Currently processing: ' + state[1].upper() + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1] + ' (' + str(blockCount) + ' of ' + str(len(blockSelection))+')')
@@ -273,9 +284,10 @@ try:  # Main exception handler
                                     cellText = cellText.strip()
                                     # Store the cell data
                                     headerTableRow.append(cellText)
-                                    ws.write(rowCount, cellCount, cellText, headerStyle)
+                                    #ws.write(rowCount, cellCount, cellText, headerStyle)
                                     cellCount = cellCount + 1
                                 rowCount = rowCount + 1
+                                outputArray.append(headerTableRow)
 
                             headerFlag = True
 
@@ -305,9 +317,10 @@ try:  # Main exception handler
                                                     cellText = cellText
                                                 # Store the cell data
                                                 tableRow.append(cellText)
-                                                ws.write(rowCount, cellCount, cellText)
                                                 cellCount = cellCount + 1
                                             rowCount = rowCount + 1
+                                            outputArray.append(tableRow)
+
                             except TypeError:
                                 print ('No data for ' + block['id'])
                             except AttributeError:
@@ -315,6 +328,12 @@ try:  # Main exception handler
                 districtCount = districtCount + 1
             stateCount = stateCount + 1
         componentCount = componentCount + 1
+
+    # Write all data into the file
+    r = 0
+    for entry in outputArray:
+        ws.write_row(r, 0, entry)
+        r = r + 1
 
     print ('Done processing.' + ' Script executed in ' + str(int(time.time() - startTime)) + ' seconds.')
     print ('File saved in ' + filePath)
@@ -324,6 +343,17 @@ try:  # Main exception handler
     wb.close()
 
 except:  # Main exception handler
+    try:
+        # Write all data into the file
+        r = 0
+        for entry in outputArray:
+            ws.write_row(r, 0, entry)
+            r = r + 1
+            wb.close()
+            print ('File saved in ' + filePath)
+    except:
+        print ("Could not output data.")
+
     print('The program did not complete.')
     e = sys.exc_info()
     print (e)
