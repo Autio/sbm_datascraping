@@ -210,6 +210,8 @@ try:  # Main exception handler
                 linkOptions = []
                 linkOptions2 = []
                 linkOptions3 = []
+                blockNames = []
+                blockNames = districtPage.findAll('span', {'id': re.compile('lblBlock$')})
                 linkSelection = districtPage.findAll('input', {'id': re.compile('hfCode$')})
                 linkSelection2 = districtPage.findAll('input', {'id': re.compile('hfdtcode$')})
                 linkSelection3 = districtPage.findAll('input', {'id': re.compile('hfBlkcode$')})
@@ -231,10 +233,11 @@ try:  # Main exception handler
                 if not headerFlag:
                     print ('Processing table headers...')
                 for block in blockSelection:
+                    blockName = blockNames[blockCount].text
                     blockCount = blockCount + 1
 
                     if block.text == '0':
-                        print ('Currently processing: ' + state[1].upper() + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1] + ' (' + str(blockCount) + ' of ' + str(len(blockSelection)) + ') - no GP data')
+                        print ('Currently processing: ' + state[1].upper() + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1].strip() + ' (' + str(districtCount) + ' of ' + str(len(districtOptions)) + ') >  ' + blockName.strip() + ' (' + str(blockCount) + ' of ' + str(len(blockSelection)) + ') - no GP data')
                         tableRow = []
                         tableRow.append('')
                         tableRow.append(state[1])
@@ -250,8 +253,7 @@ try:  # Main exception handler
                         outputArray.append(tableRow)
                     # Only click into block if the total value of blocks is above 0, otherwise it will not go anywhere
                     else:
-                        print ('Currently processing: ' + state[1].upper() + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1] + ' (' + str(blockCount) + ' of ' + str(len(blockSelection))+')')
-
+                        print ('Currently processing: ' + state[1].upper() + ' > ' + "" + ' (' + str(stateCount) + ' of ' + str(len(stateOptionVals)) + ')' + ' >  ' + district[1].strip() + ' (' + str(districtCount) + ' of ' + str(len(districtOptions)) + ') >  ' + blockName.strip() + ' (' + str(blockCount) + ' of ' + str(len(blockSelection)) + ')')
                         postParams = {
                             argumentKey: argumentVal,
                             targetKey: block['id'].replace('_', '$').replace('lnk$', 'lnk_'),
