@@ -21,6 +21,7 @@ try:  # Main exception handler
     # Configuration of request variables
     url_SBM = 'http://sbm.gov.in/sbmreport/Report/Panchayat/SBM_SLWMExpenditureAchievement.aspx'
 
+    # Storing the final output
     outputArray = []
 
     # Key / value pairs to pass to ASP.net POST parameters
@@ -61,7 +62,7 @@ try:  # Main exception handler
             if not responseHTMLParsed == '':
                 return responseHTMLParsed
             else:
-                print ("    Could not load #s page - attempt %s out of %s" % (pagetype, i+1, attempts))
+                print ("    Could not load %s page - attempt %s out of %s" % (pagetype, i+1, attempts))
 
 
     # Given two dicts, merge them into a new dict as a shallow copy.
@@ -180,6 +181,59 @@ try:  # Main exception handler
 
     stateCount = 1
     # Should cycle through all the items in stateOptions
+
+    # First find a state with GP values and use that to write headers, then start again
+    for s in stateOptionVals:
+        # If state has no recorded values for GPs, then can't click to it
+        if not s[0] == '0':
+            stateLinkVal = s[1]
+            stateLinkVal = stateLinkVal.replace('_', '$')  # Tweaking to get $ signs in the right place
+            stateLinkVal = stateLinkVal.replace('rptr$cen', 'rptr_cen')
+            stateLinkVal = stateLinkVal.replace('lnkbtn$st', 'lnkbtn_st')
+
+            eventVal = allStatePage.find('input', {'id': '__EVENTVALIDATION'})['value']
+            viewStateVal = allStatePage.find('input', {'id': '__VIEWSTATE'})['value']
+            # Need to call Javascript __doPostBack() on the links
+            postParams = {
+                '__EVENTARGUMENT': '',
+                '__EVENTTARGET': stateLinkVal,
+                eventValKey: eventVal,
+                viewStateKey: viewStateVal,
+            }
+            postParams = merge_two_dicts(paramDictionary, postParams)
+            GPPage = parsePOSTResponse(url_SBM, postParams, 'GP')
+            # Process table data and output
+            ReportTable = GPPage.find('table')
+
+            # Write table headers
+
+            if not headerFlag:
+                print('Data - Processing table headers...')
+                headerRows = ReportTable.find('thead').findAll('tr')  # Only process table header data
+                headerTableArray = []
+                rowCount = 0
+
+                headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
+
+                for tr in headerRows:  # last header row only
+                    cellCount = 0
+                    headerTableRow = []
+                    headerCols = tr.findAll('th')
+                    # Write state, district, and block headerss
+                    for td in headerCols:
+                        # Tidy the cell content
+                        cellText = td.text.replace('\*', '')
+                        cellText = cellText.strip()
+                        # Store the cell data
+                        headerTableRow.append(cellText)
+                        cellCount = cellCount + 1
+
+                    outputArray.append(headerTableRow)
+                    rowCount = rowCount + 1
+
+                headerFlag = True
+                break
+
     for s in stateOptionVals:
         # If state has no recorded values for GPs, then can't click to it
         if not s[0] == '0':
@@ -205,36 +259,9 @@ try:  # Main exception handler
             # Process table data and output
             ReportTable = GPPage.find('table')
 
-            # Write table headers
-            if not headerFlag:
-                print('Processing table headers...')
-                headerRows = ReportTable.find('thead').findAll('tr')  # Only process table header data
-                headerTableArray = []
-                rowCount = 0
-
-                headerStyle = wb.add_format({'bold': True, 'font_color': 'white', 'bg_color': '#0A8AD5'})
-
-                for tr in headerRows:  # last headeR row only
-                    cellCount = 0
-                    headerTableRow = []
-                    headerCols = tr.findAll('th')
-                    # Write state, district, and block headerss
-                    for td in headerCols:
-                        # Tidy the cell content
-                        cellText = td.text.replace('\*', '')
-                        cellText = cellText.strip()
-                        # Store the cell data
-                        headerTableRow.append(cellText)
-                        cellCount = cellCount + 1
-                    rowCount = rowCount + 1
-
-                headerFlag = True
-
             # Write table data
             if isinstance(ReportTable,
                           bs4.element.Tag):  # Check whether data table successfully found on the page. Some blocks have no data.
-                # Store table for writing headers after loop
-
                 print('Currently processing: ' + s[2] + ' (' + str(
                     stateCount) + ' of ' + str(
                     len(stateOptionVals)) + ')')
@@ -260,31 +287,64 @@ try:  # Main exception handler
                                 cellText = cellText
                             # Store the cell data
                             tableRow.append(cellText)
-                            ws.write(rowCount, cellCount, cellText)
                             cellCount = cellCount + 1
+
+                        outputArray.append(tableRow)
                         rowCount = rowCount + 1
 
                 else:
                     sta = "no data in state"
+
                 stateCount = stateCount + 1
 
         else:
+
             print('Currently processing: ' + s[2] + ' (' + str(
                     stateCount) + ' of ' + str(
-                    len(stateOptionVals)) + ') - No GP data available')
+                    len(stateOptionVals)) + ') - No GP data reported')
+
+            # Output row for state
+            tableRow = []
+            tableRow.append('1')
+            tableRow.append(s[2])
+            for i in range(3):
+                tableRow.append("No data")
+            for i in range(4):
+                tableRow.append('0')
+            tableRow.append("No data")
+            outputArray.append(tableRow)
 
             stateCount = stateCount + 1
 
     print('Done processing.' + ' Script executed in ' + str(int(time.time() - startTime)) + ' seconds.')
     # END MAIN LOOP
 
+    # Write output
+    r = 0
+    for entry in outputArray:
+        ws.write_row(r, 0, entry)
+        r = r + 1
     # Finally, save the workbook
     wb.close()
 
 except:  # Main exception handler
-    print('The program did not complete.')
-    e = sys.exc_info()
-    print(e)
-    ctypes.windll.user32.MessageBoxW(0,
-                                     "Sorry, there was a problem running this program.\n\nFor developer reference:\n\n" + str(
-                                         e), "The program did not complete :-/", 1)
+    try:
+        # Write all data into the file
+        r = 0
+        for entry in outputArray:
+            ws.write_row(r, 0, entry)
+            r = r + 1
+
+        print("Error occurred, outputted %s rows of data." % r)
+        wb.close()
+        e = sys.exc_info()
+        print(e)
+    except:
+        print ("Could not output data.")
+
+        print('The program did not complete.')
+        e = sys.exc_info()
+        print(e)
+        ctypes.windll.user32.MessageBoxW(0,
+                                         "Sorry, there was a problem running this program.\n\nFor developer reference:\n\n" + str(
+                                             e), "The program did not complete :-/", 1)
