@@ -1,4 +1,4 @@
-('C:\\Users\\Petri\\Documents\\sbm_datascraping\\build\\SBM_StateReleaseAllocation_Data_Script\\out00-PYZ.pyz',
+('C:\\Users\\Vaio\\Documents\\SBM_Datascraping\\build\\SBM_StateReleaseAllocation_Data_Script\\out00-PYZ.pyz',
  [('encodings.aliases',
    'c:\\python27\\lib\\encodings\\aliases.py',
    'PYMODULE'),

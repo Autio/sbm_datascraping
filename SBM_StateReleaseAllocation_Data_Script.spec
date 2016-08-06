@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['SBM_StateReleaseAllocation_Data_Script.py'],
-             pathex=['C:\\Users\\Petri\\Documents\\sbm_datascraping'],
+             pathex=['C:\\Users\\Vaio\\Documents\\SBM_Datascraping'],
              binaries=None,
              datas=None,
              hiddenimports=[],

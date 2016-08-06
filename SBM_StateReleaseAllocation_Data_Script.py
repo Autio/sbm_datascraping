@@ -23,6 +23,9 @@ try: # Main exception handler
     # Configuration of request variables
     url_SBM_FinanceProgress = 'http://sbm.gov.in/sbmreport/Report/Financial/SBM_StateReleaseAllocationincludingUnapproved.aspx'
 
+    # Store data for output
+    outputArray = []
+
     # For finance progress
     componentKey = 'ctl00$ContentPlaceHolder1$ddlComponent'
     componentVal = ''
@@ -43,7 +46,7 @@ try: # Main exception handler
     targetVal = ''
 
     # Function to return HTML parsed with BeautifulSoup from a POST request URL and parameters.
-    def parsePOSTResponse(URL, parameters=''):
+    def parsePOSTResponse(URL, parameters='', pagetype = ''):
         responseHTMLParsed = ''
         attempts = 20
         for i in range(attempts):
@@ -54,7 +57,7 @@ try: # Main exception handler
             if not responseHTMLParsed == '':
                 return responseHTMLParsed
             else:
-                print ("    Could not load page - attempt %s out of %s" % (i+1, attempts))
+                print ("    Could not load %s page - attempt %s out of %s" % (pagetype, i+1, attempts))
 
     # Given two dicts, merge them into a new dict as a shallow copy.
     def merge_two_dicts(x, y):
@@ -63,7 +66,7 @@ try: # Main exception handler
         return z
 
     # Load the default page and scrape the component, finance year and authentication values
-    initPage = parsePOSTResponse(url_SBM_FinanceProgress)
+    initPage = parsePOSTResponse(url_SBM_FinanceProgress, 'initial')
     eventVal = initPage.find('input',{'id':'__EVENTVALIDATION'})['value']
     viewStateVal = initPage.find('input',{'id':'__VIEWSTATE'})['value']
     componentOptions = []
@@ -124,7 +127,7 @@ try: # Main exception handler
             }
 
 
-            componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
+            componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams, 'component')
 
             # Find States
             stateOptions = []
@@ -168,7 +171,7 @@ try: # Main exception handler
                 # Merge with dict of links
                 postParams = merge_two_dicts(postParams, paramDict)
 
-                componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams)
+                componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams, 'component')
 
                 # Process table data and output
                 ReportTable = componentPage.find('table')
@@ -187,21 +190,18 @@ try: # Main exception handler
                         headerTableRow = []
                         headerCols = tr.findAll('th')
                         # Write state, district, and block headers
-                        ws.write(rowCount,cellCount,'Component name (State or Centre)',headerStyle)
-                        cellCount = cellCount+1
-                        ws.write(rowCount,cellCount,'Financial Year',headerStyle)
-                        cellCount = cellCount+1
-                        ws.write(rowCount,cellCount,'State Name',headerStyle)
-                        cellCount = cellCount+1
+                        headerTableRow.append('Component name (State or Centre)')
+                        headerTableRow.append('Financial Year')
+                        headerTableRow.append('State Name')
                         for td in headerCols:
                             # Tidy the cell content
                             cellText = td.text.replace('\*','')
                             cellText = cellText.strip()
                             # Store the cell data
                             headerTableRow.append(cellText)
-                            ws.write(rowCount,cellCount,cellText,headerStyle)
                             cellCount = cellCount+1
                         rowCount = rowCount + 1
+                        outputArray.append(headerTableRow)
 
                     headerFlag = True
 
@@ -219,12 +219,9 @@ try: # Main exception handler
                             tableRow = []
                             cols = tr.findAll('td')
                             # Write stored information in columns prior to data: Financial Year, State/Center, Statename
-                            ws.write(rowCount,cellCount,componentName)
-                            cellCount = cellCount + 1
-                            ws.write(rowCount,cellCount,finYearOptionVal)
-                            cellCount = cellCount + 1
-                            ws.write(rowCount,cellCount,s[0])
-                            cellCount = cellCount + 1
+                            tableRow.append(componentName)
+                            tableRow.append(finYearOptionVal)
+                            tableRow.append(s[0])
                             for td in cols:
                                 # Tidy and format the cell content
                                 cellText = td.text.replace('\*','')
@@ -236,12 +233,12 @@ try: # Main exception handler
                                     cellText = cellText
                                 # Store the cell data
                                 tableRow.append(cellText)
-                                ws.write(rowCount,cellCount,cellText)
                                 cellCount = cellCount+1
+                            outputArray.append(tableRow)
                             rowCount = rowCount + 1
 
                     else:
-                        sta = "no data in state"
+                        sta = "No data recorded for state"
                     stateCount = stateCount + 1
                 componentCount = componentCount + 1
 
@@ -249,11 +246,33 @@ try: # Main exception handler
     print ('Done processing.' + ' Script executed in ' + str(int(time.time()-startTime)) + ' seconds.')
     # END MAIN LOOP
 
+    # Write output
+    r = 0
+    for entry in outputArray:
+        ws.write_row(r, 0, entry)
+        r = r + 1
     # Finally, save the workbook
     wb.close()
 
+
 except:  # Main exception handler
-    print('The program did not complete.')
-    e = sys.exc_info()
-    print (e)
-    ctypes.windll.user32.MessageBoxW(0, "Sorry, there was a problem running this program.\n\nFor developer reference:\n\n" + str(e), "The program did not complete :-/", 1)
+    try:
+        # Write all data into the file
+        r = 0
+        for entry in outputArray:
+            ws.write_row(r, 0, entry)
+            r = r + 1
+
+        print("Error occurred, outputted %s rows of data." % r)
+        wb.close()
+        e = sys.exc_info()
+        print(e)
+    except:
+        print ("Could not output data.")
+
+        print('The program did not complete.')
+        e = sys.exc_info()
+        print(e)
+        ctypes.windll.user32.MessageBoxW(0,
+                                         "Sorry, there was a problem running this program.\n\nFor developer reference:\n\n" + str(
+                                             e), "The program did not complete :-/", 1)

@@ -159,6 +159,9 @@ missing module named lxml - imported by bs4.builder._lxml
 missing module named bs4.builder.FAST - imported by bs4.builder, bs4.builder._lxml
 missing module named bs4.builder.TreeBuilder - imported by bs4.builder, bs4.builder._lxml
 missing module named bs4.builder.XML - imported by bs4.builder, bs4.builder._lxml
+missing module named 'html5lib.treebuilders'.base - imported by 'html5lib.treebuilders', bs4.builder._html5lib
+missing module named 'html5lib.treebuilders'._base - imported by 'html5lib.treebuilders', bs4.builder._html5lib
+missing module named 'html5lib.treebuilders' - imported by bs4.builder._html5lib
 missing module named 'html5lib.constants'.namespaces - imported by 'html5lib.constants', bs4.builder._html5lib
 missing module named 'html5lib.constants' - imported by bs4.builder._html5lib
 missing module named html5lib - imported by bs4.builder._html5lib
