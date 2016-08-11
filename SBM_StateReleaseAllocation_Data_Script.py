@@ -88,7 +88,7 @@ try: # Main exception handler
 
     # Initialise workbook
     todaysDate = time.strftime('%d-%m-%Y')
-    desktopFile = os.path.expanduser('~/Desktop/SBM_FinanceProgress_' + todaysDate + '.xlsx')
+    desktopFile = os.path.expanduser('~/Desktop/SBM_StateReleaseAllocation_' + todaysDate + '.xlsx')
     wb = xlsxwriter.Workbook(desktopFile, {'strings_to_numbers': True})
     ws = wb.add_worksheet('SBM')
     ws.set_column('A:AZ', 22)
@@ -158,7 +158,8 @@ try: # Main exception handler
             for s in stateOptionVals:
                 stateLinkVal = s[1]
                 stateLinkVal = stateLinkVal.replace('_', '$') # Tweaking to get $ signs in the right place
-                stateLinkVal = stateLinkVal.replace('rptr$cen', 'rptr_cen')
+                stateLinkVal = stateLinkVal.replace('rptr$cen', 'rptr_cen') # Tweaking
+                stateLinkVal = stateLinkVal.replace('rptr$st', 'rptr_st') # Tweaking!
                 stateLinkVal = stateLinkVal.replace('lnkbtn$st', 'lnkbtn_st')
 
                 # Need to call Javascript __doPostBack() on the links
@@ -171,10 +172,10 @@ try: # Main exception handler
                 # Merge with dict of links
                 postParams = merge_two_dicts(postParams, paramDict)
 
-                componentPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams, 'component')
+                districtPage = parsePOSTResponse(url_SBM_FinanceProgress, postParams, 'component')
 
                 # Process table data and output
-                ReportTable = componentPage.find('table')
+                ReportTable = districtPage.find('table')
 
                 # Write table headers
                 if not headerFlag:
